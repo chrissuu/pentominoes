@@ -1,0 +1,9 @@
+[project]
+name = "pentominoes"
+version = "0.1.0"
+description = "15-816 Final Project: SAT and Pentomino Fences"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-sat[aiger,approxmc,pblib]",
+]
