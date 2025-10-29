@@ -55,8 +55,7 @@ Constraints:
 
 3.) Ensure that if you are an outside cell, then your adjacent cells are either an outside cell or a fence cell. 
 
-4.) Handle all edge cases that arise....
-"""
+4.) Sum of inside cells should be greater than or equal to 129 (since we want to show 128 is maximal area)
 
-def encode():
-    
+5.) Handle all edge cases that arise....
+"""

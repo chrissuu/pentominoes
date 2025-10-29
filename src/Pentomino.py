@@ -15,21 +15,25 @@ class Pentomino:
     def __init__(self):
         self.tiles = self.default_tiles
 
-    def rotate(self, k: int) -> None:
+    def rotate(self, k: int) -> 'Pentomino':
         k = k % 4
         for _ in range(k):
             self.tiles = [(y, -x) for (x, y) in self.tiles]
+        return self
 
-    def reflect_horizontally(self) -> None:
+    def reflect_horizontally(self) -> 'Pentomino':
         self.tiles = [(-x, y) for (x, y) in self.tiles]
+        return self
 
-    def reflect_vertically(self) -> None:
+    def reflect_vertically(self) -> 'Pentomino':
         self.rotate(2)
         self.reflect_horizontally()
+        return self
     
-    def recenter(self, new_center: Tile) -> List[Tile]:
+    def recenter(self, new_center: Tile) -> 'Pentomino':
         cx, cy = new_center
-        return [(x - cx, y - cy) for (x, y) in self.tiles]
+        self.tiles = [(x - cx, y - cy) for (x, y) in self.tiles]
+        return self
     
     def print_in_grid(self, size: int = 7):
         grid = [[" " for _ in range(size)] for _ in range(size)]
