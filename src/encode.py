@@ -57,3 +57,6 @@ Constraints:
 
 4.) Handle all edge cases that arise....
 """
+
+def encode():
+    
