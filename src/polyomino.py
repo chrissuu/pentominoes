@@ -94,13 +94,13 @@ class L4(Polyomino):
     default_tiles = [(0, 0), (0, 1), (0, 2), (1, 0)]
 
 
-class S4(Polyomino):
+class N4(Polyomino):
     """
       o o
     x o
     """
 
-    name = "S"
+    name = "N"
     default_tiles = [(0, 0), (1, 0), (1, 1), (2, 1)]
 
 
@@ -245,7 +245,7 @@ ALL_TETROMINOES = [
     O4(),
     T4(),
     L4(),
-    S4(),
+    N4(),
 ]
 ALL_PENTOMINOES = [
     F5(),
