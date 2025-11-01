@@ -21,8 +21,10 @@ COLORS = {
     "U": hex2rgb("#3b82f6"),  # Blue
     "V": hex2rgb("#6366f1"),  # Indigo
     "W": hex2rgb("#a855f7"),  # Purple
+    "S": hex2rgb("#d946ef"),  # Fuchsia
     "X": hex2rgb("#ec4899"),  # Pink
     "Y": hex2rgb("#64748b"),  # Slate
+    "O": hex2rgb("#71717a"),  # Zinc
     "Z": hex2rgb("#78716c"),  # Stone
 }
 
