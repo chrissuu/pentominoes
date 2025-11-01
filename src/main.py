@@ -11,24 +11,12 @@ class PolyominoSolver:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.polyominoes = [
-            F5(),
-            I5(),
-            L5(),
-            N5(),
-            P5(),
-            T5(),
-            U5(),
-            V5(),
-            W5(),
-            X5(),
-            Y5(),
-            Z5(),
-        ]
+        self.polyominoes = ALL_PENTOMINOES
 
         self.var_counter = 1
         self.p_vars = {}
         self.cnf = CNF()
+        self.model = None
 
     def get_p_var(self, x: int, y: int, r: int, i: int) -> int:
         key = (x, y, r, i)

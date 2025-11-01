@@ -51,6 +51,59 @@ class Polyomino:
             print(" ".join(row))
 
 
+class I4(Polyomino):
+    """
+    o
+    o
+    o
+    x
+    """
+
+    name = "I"
+    default_tiles = [(0, 0), (0, 1), (0, 2), (0, 3)]
+
+
+class O4(Polyomino):
+    """
+    o o
+    x o
+    """
+
+    name = "O"
+    default_tiles = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+
+class T4(Polyomino):
+    """
+    o o o
+      x
+    """
+
+    name = "T"
+    default_tiles = [(0, 0), (-1, 1), (0, 1), (1, 1)]
+
+
+class L4(Polyomino):
+    """
+    o
+    o
+    x o
+    """
+
+    name = "L"
+    default_tiles = [(0, 0), (0, 1), (0, 2), (1, 0)]
+
+
+class S4(Polyomino):
+    """
+      o o
+    x o
+    """
+
+    name = "S"
+    default_tiles = [(0, 0), (1, 0), (1, 1), (2, 1)]
+
+
 class F5(Polyomino):
     """
       o o
@@ -185,3 +238,26 @@ class Z5(Polyomino):
 
     name = "Z"
     default_tiles = [(0, 0), (1, 0), (0, 1), (0, 2), (-1, 2)]
+
+
+ALL_TETROMINOES = [
+    I4(),
+    O4(),
+    T4(),
+    L4(),
+    S4(),
+]
+ALL_PENTOMINOES = [
+    F5(),
+    I5(),
+    L5(),
+    N5(),
+    P5(),
+    T5(),
+    U5(),
+    V5(),
+    W5(),
+    X5(),
+    Y5(),
+    Z5(),
+]
