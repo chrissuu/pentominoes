@@ -1,4 +1,12 @@
 """
+Constraints Edits: 11/4
+
+1.) changed "adjacency" to also include diagonals. this enforces that the fence is properly enclosed 
+
+2.) ensure that the outmost perimeter is an outside cell
+"""
+
+"""
 [IDEA] The high level idea is as follows:
 
 1.) Fix some arbitrary rectangular enclosure where pentominoes can be placed.
