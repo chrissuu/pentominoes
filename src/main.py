@@ -133,8 +133,10 @@ class PolyominoSolver:
 
     def add_exactly_one_polyomino_constraint(self):
         """
-        For each pentomino i, choose exactly one placement (corner x,y and rotation r).
+        For each polyomino i, choose exactly one placement (corner x,y and rotation r).
+        Uses a single cardinality encoding instead of pairwise exclusions.
         """
+        vpool = IDPool(start_from=self.var_counter)
         for i in range(len(self.polyominoes)):
             placements = []
             for x in range(self.width):
@@ -144,22 +146,32 @@ class PolyominoSolver:
                         if self.is_valid_placement(tiles):
                             placements.append(self.get_p_var(x, y, r, i))
 
-            if placements:
-                self.cnf.append(placements)
+            if not placements:
+                continue
 
-            for p1, p2 in itertools.combinations(placements, 2):
-                self.cnf.append([-p1, -p2])
+            enc_eq = CardEnc.equals(lits=placements, bound=1,
+                                    encoding=EncType.seqcounter, vpool=vpool)
+            self.cnf.extend(enc_eq.clauses)
+
+        if vpool.top is not None:
+            self.var_counter = max(self.var_counter, vpool.top + 1)
     
     def add_no_overlap_constraints(self):
+        """
+        Each tile is covered by at most one polyomino.
+        """
         if not self.cell_to_placements:
             self.build_map()
 
-        for (tx, ty), occupiers in self.cell_to_placements.items():
-            if len(occupiers) <= 1:
-                continue
+        vpool = IDPool(start_from=self.var_counter)
+        for occupiers in self.cell_to_placements.values():
+            if len(occupiers) > 1:
+                enc_atmost = CardEnc.atmost(lits=occupiers, bound=1,
+                                            encoding=EncType.seqcounter, vpool=vpool)
+                self.cnf.extend(enc_atmost.clauses)
 
-            for o1, o2 in itertools.combinations(occupiers, 2):
-                self.cnf.append([-o1, -o2])
+        if vpool.top is not None:
+            self.var_counter = max(self.var_counter, vpool.top + 1)
 
     def add_tile_partition_constraints(self):
         for x in range(self.width):
