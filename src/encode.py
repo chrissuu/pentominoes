@@ -1,4 +1,40 @@
 """
+11/5
+TODO:
+1.) See if solution satisfies formula
+    1.5) 
+        ->instead of all pentominoes, consider subset
+        ->grid size
+
+2.) symmetry breaking
+    2.5) 
+        ->e.g., fix piece in top left quadrant
+        ->e.g., constraint that some piece is within some quadrant
+
+3.) fix piece + orientation + position of solution and see if solver can solve it
+
+4.) send .cnf file
+
+5.) duplicate tetrominoes and solve
+
+6.) https://github.com/hgarrereyn/SBVA
+
+7.) splitting clauses
+
+8.) https://pentomino.classy.be/recorde.html
+
+9.) gradually increasing difficulty could be useful for 
+heuristically seeing how difficult the full original problem is
+
+10.) for each cell: it's part of at most one piece
+cardinality constraints with large bounds usually harder than with small bounds
+
+11.) bug fix in 20,20,128 case
+"""
+
+
+
+"""
 Constraints Edits: 11/4
 
 1.) changed "adjacency" to also include diagonals. this enforces that the fence is properly enclosed 
