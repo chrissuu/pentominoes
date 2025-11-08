@@ -1,4 +1,6 @@
 import itertools
+import time
+import argparse
 from copy import deepcopy
 
 from pysat.formula import CNF, IDPool
@@ -10,6 +12,20 @@ from typing import List, Tuple, Dict
 from Polyomino import *
 from Pentomino import *
 from Tetromino import *
+
+import functools
+
+def log_diff(fn):
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        prev = len(self.cnf.clauses)
+        computation = fn(self, *args, **kwargs)
+        after = len(self.cnf.clauses)
+        print(f"Constraint {fn.__name__} added {after - prev} clauses.")
+        return computation
+    
+    return wrapper
+    
 
 class PolyominoSolver:
     def __init__(self, width: int, height: int, inside_tiles_minimum, polyominoes):
@@ -131,6 +147,7 @@ class PolyominoSolver:
 
 # BEGIN CONSTRAINTS DEFINITIONS
 
+    @log_diff
     def add_exactly_one_polyomino_constraint(self):
         """
         For each polyomino i, choose exactly one placement (corner x,y and rotation r).
@@ -156,6 +173,7 @@ class PolyominoSolver:
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
     
+    @log_diff
     def add_no_overlap_constraints(self):
         """
         Each tile is covered by at most one polyomino.
@@ -173,6 +191,7 @@ class PolyominoSolver:
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
 
+    @log_diff
     def add_tile_partition_constraints(self):
         for x in range(self.width):
             for y in range(self.height):
@@ -186,6 +205,7 @@ class PolyominoSolver:
                 self.cnf.append([-cf, -co])
                 self.cnf.append([-ci, -co])
 
+    @log_diff
     def add_link_fence_to_placements_constraint(self):
         if not self.cell_to_placements:
             self.build_map()
@@ -200,7 +220,7 @@ class PolyominoSolver:
             else:
                 self.cnf.append([-cf])
 
-
+    @log_diff
     def add_outside_adjacency_constraints(self):
         """
         Encodes the constraint that adjacent tiles
@@ -214,6 +234,7 @@ class PolyominoSolver:
                     ti_n = self.get_ti_var(nx, ny)
                     self.cnf.append([-to_xy, -ti_n])
 
+    @log_diff
     def add_cardinality_constraints(self):
         """
         Ensures that there are at least self.inside_tiles_minimum
@@ -238,6 +259,7 @@ class PolyominoSolver:
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
 
+    @log_diff
     def add_outside_border_constraints(self):
         """
         Force every boundary (perimeter) tile to be outside
@@ -256,7 +278,6 @@ class PolyominoSolver:
 # END CONSTRAINTS DEFINITIONS
 
     def solve(self) -> bool:
-        import time
         print("BEGIN BUILDING MAP")
         t0 = time.time()
         self.build_map()
@@ -267,6 +288,8 @@ class PolyominoSolver:
         print("BEGIN CONSTRAINT BUILDING")
         t1 = time.time()
 
+        # TODO: write down how many clauses each constraint
+        # contributes to the encoding
         self.add_exactly_one_polyomino_constraint()
         self.add_no_overlap_constraints()
         self.add_tile_partition_constraints()
@@ -289,7 +312,7 @@ class PolyominoSolver:
         print(f"  Avg clause length: {avg_clause_len:.2f}")
         print()
 
-        print("\nBEGIN SOLVING")
+        print("BEGIN SOLVING")
         solver = Cadical195()
         for clause in self.cnf.clauses:
             solver.add_clause(clause)
@@ -353,8 +376,10 @@ We use to, ti, tf to represent:
 -> "Tile fence"
 """
 if __name__ == "__main__":
-    # solver = PolyominoSolver(10, 10, 9, ALL_TETROMINOES)
-    solver = PolyominoSolver(20, 20, 128, ALL_PENTOMINOES)
+    solver = PolyominoSolver(10, 10, 9, ALL_TETROMINOES)
+    # solver = PolyominoSolver(10, 10, 10, ALL_TETROMINOES)
+    # solver = PolyominoSolver(20, 20, 129, ALL_PENTOMINOES)
+    # solver = PolyominoSolver(20, 20, 128, ALL_PENTOMINOES)
     if solver.solve():
         print("Solution found!")
         solver.print_board()
