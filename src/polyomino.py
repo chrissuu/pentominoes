@@ -13,8 +13,9 @@ class Polyomino:
 
     name: str = None
     default_tiles: List[Tile] = []
-    # Number of unique forms the shape can take under rotation/reflection
+    # Number of unique forms the shape can take under rotation; i.e. 4 - <number of rotational symmetries>
     rotation_index: int = 4
+    # 2 if the shape is chiral, 1 otherwise
     reflection_index: int = 2
 
     def __init__(self):

@@ -127,19 +127,19 @@ class PolyominoSolver:
             (x, y): [] for x in range(self.width) for y in range(self.height)
         }
 
-        for i, x, y, r, m in product(
-            range(len(self.polyominoes)),
-            range(self.width),
-            range(self.height),
-            range(4),
-            [False, True],
-        ):
-            tiles = self.get_polyomino_tiles(i, x, y, r, m)
-            if not self.is_valid_placement(tiles):
-                continue
-            p_var = self.get_p_var(x, y, r, m, i)
-            for tx, ty in tiles:
-                cell_to_placements[(tx, ty)].append(p_var)
+        for i, polyomino in enumerate(self.polyominoes):
+            for x, y, r, m in product(
+                range(self.width),
+                range(self.height),
+                range(polyomino.reflection_index),
+                range(polyomino.rotation_index),
+            ):
+                tiles = self.get_polyomino_tiles(i, x, y, r, m)
+                if not self.is_valid_placement(tiles):
+                    continue
+                p_var = self.get_p_var(x, y, r, m, i)
+                for tx, ty in tiles:
+                    cell_to_placements[(tx, ty)].append(p_var)
         self.cell_to_placements = cell_to_placements
 
     # BEGIN CONSTRAINTS DEFINITIONS
@@ -150,10 +150,13 @@ class PolyominoSolver:
         For each polyomino i, choose exactly one placement (corner x,y and rotation r).
         Uses a single cardinality encoding instead of pairwise exclusions.
         """
-        for i in range(len(self.polyominoes)):
+        for i, polyomino in enumerate(self.polyominoes):
             placements = []
             for x, y, r, m in product(
-                range(self.width), range(self.height), range(4), [False, True]
+                range(self.width),
+                range(self.height),
+                range(polyomino.reflection_index),
+                range(polyomino.rotation_index),
             ):
                 tiles = self.get_polyomino_tiles(i, x, y, r, m)
                 if self.is_valid_placement(tiles):
@@ -380,7 +383,7 @@ We use to, ti, tf to represent:
 -> "Tile fence"
 """
 if __name__ == "__main__":
-    solver = PolyominoSolver(10, 10, 9, ALL_TETROMINOES)
+    solver = PolyominoSolver(10, 10, 10, ALL_TETROMINOES)
     # solver = PolyominoSolver(10, 10, 10, ALL_TETROMINOES)
     # solver = PolyominoSolver(20, 20, 129, ALL_PENTOMINOES)
     # solver = PolyominoSolver(20, 20, 128, ALL_PENTOMINOES)
