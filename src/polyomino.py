@@ -11,8 +11,11 @@ class Polyomino:
     the pentomino wiki page: https://en.wikipedia.org/wiki/Pentomino
     """
 
-    name = None
+    name: str = None
     default_tiles: List[Tile] = []
+    # Number of unique forms the shape can take under rotation/reflection
+    rotation_index: int = 4
+    reflection_index: int = 2
 
     def __init__(self):
         self.tiles = self.default_tiles
@@ -32,9 +35,16 @@ class Polyomino:
         self.reflect_horizontally()
         return self
 
-    def recenter(self, new_center: Tile) -> "Polyomino":
-        cx, cy = new_center
-        self.tiles = [(x - cx, y - cy) for (x, y) in self.tiles]
+    def translate(self, shift: Tile) -> "Polyomino":
+        cx, cy = shift
+        self.tiles = [(x + cx, y + cy) for (x, y) in self.tiles]
+        return self
+
+    def recenter_at_origin(self) -> "Polyomino":
+        """
+        Repositions the polyomino so that its first tile is at the origin (0,0)
+        """
+        self.translate((-self.tiles[0][0], -self.tiles[0][1]))
         return self
 
     def print_in_grid(self, size: int = 7):

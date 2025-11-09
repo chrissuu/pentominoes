@@ -1,6 +1,7 @@
 import functools
 import time
 from copy import deepcopy
+from itertools import product
 from typing import Dict, Sequence
 
 from pysat.card import CardEnc, EncType
@@ -44,15 +45,15 @@ class PolyominoSolver:
         self.cnf = CNF()
         self.model = None
 
-    def get_p_var(self, x: int, y: int, r: int, i: int) -> int:
+    def get_p_var(self, x: int, y: int, r: int, m: int, i: int) -> int:
         """
         Polyomino tile
 
-        Represents placing polyomino i at position (x,y) with rotation r.
+        Represents placing polyomino i at position (x,y) with rotation r and reflection m.
         See Polyomino.py for an encoding
         """
-        self.p_vars.add((x, y, r, i))
-        return self.vpool.id(f"p_{x}_{y}_{r}_{i}")
+        self.p_vars.add((x, y, r, m, i))
+        return self.vpool.id(f"p_{x}_{y}_{r}_{m}_{i}")
 
     def get_tf_var(self, x: int, y: int) -> int:
         """
@@ -82,10 +83,13 @@ class PolyominoSolver:
         return self.vpool.id(f"to_{x}_{y}")
 
     def get_polyomino_tiles(
-        self, polyomino_idx: int, x: int, y: int, rotation: int
+        self, polyomino_idx: int, x: int, y: int, rotation: int, reflect: int
     ) -> List[Tuple[int, int]]:
         polyomino = self.polyominoes[polyomino_idx]
-        polyomino_copy: Polyomino = deepcopy(polyomino).rotate(rotation)
+        polyomino_copy = deepcopy(polyomino).rotate(rotation)
+        if reflect != 0:
+            polyomino_copy.reflect_horizontally()
+        polyomino_copy.recenter_at_origin()
         tiles = [(x + tx, y + ty) for (tx, ty) in polyomino_copy.tiles]
         return tiles
 
@@ -123,16 +127,19 @@ class PolyominoSolver:
             (x, y): [] for x in range(self.width) for y in range(self.height)
         }
 
-        for i, _ in enumerate(self.polyominoes):
-            for x in range(self.width):
-                for y in range(self.height):
-                    for r in range(4):
-                        tiles = self.get_polyomino_tiles(i, x, y, r)
-                        if not self.is_valid_placement(tiles):
-                            continue
-                        p_var = self.get_p_var(x, y, r, i)
-                        for tx, ty in tiles:
-                            cell_to_placements[(tx, ty)].append(p_var)
+        for i, x, y, r, m in product(
+            range(len(self.polyominoes)),
+            range(self.width),
+            range(self.height),
+            range(4),
+            [False, True],
+        ):
+            tiles = self.get_polyomino_tiles(i, x, y, r, m)
+            if not self.is_valid_placement(tiles):
+                continue
+            p_var = self.get_p_var(x, y, r, m, i)
+            for tx, ty in tiles:
+                cell_to_placements[(tx, ty)].append(p_var)
         self.cell_to_placements = cell_to_placements
 
     # BEGIN CONSTRAINTS DEFINITIONS
@@ -145,12 +152,12 @@ class PolyominoSolver:
         """
         for i in range(len(self.polyominoes)):
             placements = []
-            for x in range(self.width):
-                for y in range(self.height):
-                    for r in range(4):
-                        tiles = self.get_polyomino_tiles(i, x, y, r)
-                        if self.is_valid_placement(tiles):
-                            placements.append(self.get_p_var(x, y, r, i))
+            for x, y, r, m in product(
+                range(self.width), range(self.height), range(4), [False, True]
+            ):
+                tiles = self.get_polyomino_tiles(i, x, y, r, m)
+                if self.is_valid_placement(tiles):
+                    placements.append(self.get_p_var(x, y, r, m, i))
 
             if not placements:
                 continue
@@ -328,11 +335,11 @@ class PolyominoSolver:
     def _is_true(self, var: int) -> bool:
         return self.model[var - 1] > 0
 
-    def get_placements(self) -> List[Tuple[int, int, int, int]]:
+    def get_placements(self) -> List[Tuple[int, int, int, int, int]]:
         placements = []
-        for x, y, r, i in self.p_vars:
-            if self._is_true(self.get_p_var(x, y, r, i)):
-                placements.append((x, y, r, i))
+        for p_var in self.p_vars:
+            if self._is_true(self.get_p_var(*p_var)):
+                placements.append(p_var)
         return placements
 
     def get_board(self) -> List[List[str]]:
@@ -347,8 +354,8 @@ class PolyominoSolver:
                 if self._is_true(ci):
                     grid[y][x] = "+"
 
-        for x, y, r, i in self.get_placements():
-            tiles = self.get_polyomino_tiles(i, x, y, r)
+        for x, y, r, m, i in self.get_placements():
+            tiles = self.get_polyomino_tiles(i, x, y, r, m)
             name = self.polyominoes[i].name
             for tx, ty in tiles:
                 if 0 <= tx < self.width and 0 <= ty < self.height:
