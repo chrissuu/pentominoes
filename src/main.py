@@ -1,19 +1,16 @@
-import itertools
+import functools
 import time
-import argparse
 from copy import deepcopy
+from typing import Dict
 
+from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
 from pysat.solvers import Cadical195
-from pysat.card import CardEnc, EncType
 
-from typing import List, Tuple, Dict
-
-from Polyomino import *
-from Pentomino import *
 from Tetromino import *
+from Pentomino import *
+from polyomino import *
 
-import functools
 
 def log_diff(fn):
     @functools.wraps(fn)
@@ -23,9 +20,9 @@ def log_diff(fn):
         after = len(self.cnf.clauses)
         print(f"Constraint {fn.__name__} added {after - prev} clauses.")
         return computation
-    
+
     return wrapper
-    
+
 
 class PolyominoSolver:
     def __init__(self, width: int, height: int, inside_tiles_minimum, polyominoes):
@@ -53,7 +50,7 @@ class PolyominoSolver:
     def get_p_var(self, x: int, y: int, r: int, i: int) -> int:
         """
         Polyomino tile
-        
+
         See Polyomino.py for an encoding
         """
         key = (x, y, r, i)
@@ -113,21 +110,27 @@ class PolyominoSolver:
         Computes the neighboring coordinates, directly adjacent to
         (x,y). Filters to ensure that coordinates fall within bounds.
         """
-        candidates = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
-        return [(nx, ny) for (nx, ny) in candidates
-                if 0 <= nx < self.width and 0 <= ny < self.height]
+        candidates = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        return [
+            (nx, ny)
+            for (nx, ny) in candidates
+            if 0 <= nx < self.width and 0 <= ny < self.height
+        ]
 
     def neighbors8(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
-        Computes the neighboring coordinates, directly adjacent 
-        and diagonal to (x,y). Filters to ensure that coordinates 
+        Computes the neighboring coordinates, directly adjacent
+        and diagonal to (x,y). Filters to ensure that coordinates
         fall within bounds.
         """
         dirs = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, 1), (1, 1), (1, -1), (-1, -1)]
         candidates = [(x + dx, y + dy) for (dx, dy) in dirs]
-        return [(nx, ny) for (nx, ny) in candidates
-                if 0<= nx < self.width and 0 <= ny < self.height]
-    
+        return [
+            (nx, ny)
+            for (nx, ny) in candidates
+            if 0 <= nx < self.width and 0 <= ny < self.height
+        ]
+
     def build_map(self):
         cell_to_placements: Dict[Tuple[int, int], List[int]] = {
             (x, y): [] for x in range(self.width) for y in range(self.height)
@@ -141,11 +144,11 @@ class PolyominoSolver:
                         if not self.is_valid_placement(tiles):
                             continue
                         p_var = self.get_p_var(x, y, r, i)
-                        for (tx, ty) in tiles:
+                        for tx, ty in tiles:
                             cell_to_placements[(tx, ty)].append(p_var)
         self.cell_to_placements = cell_to_placements
 
-# BEGIN CONSTRAINTS DEFINITIONS
+    # BEGIN CONSTRAINTS DEFINITIONS
 
     @log_diff
     def add_exactly_one_polyomino_constraint(self):
@@ -166,13 +169,14 @@ class PolyominoSolver:
             if not placements:
                 continue
 
-            enc_eq = CardEnc.equals(lits=placements, bound=1,
-                                    encoding=EncType.seqcounter, vpool=vpool)
+            enc_eq = CardEnc.equals(
+                lits=placements, bound=1, encoding=EncType.seqcounter, vpool=vpool
+            )
             self.cnf.extend(enc_eq.clauses)
 
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
-    
+
     @log_diff
     def add_no_overlap_constraints(self):
         """
@@ -184,8 +188,9 @@ class PolyominoSolver:
         vpool = IDPool(start_from=self.var_counter)
         for occupiers in self.cell_to_placements.values():
             if len(occupiers) > 1:
-                enc_atmost = CardEnc.atmost(lits=occupiers, bound=1,
-                                            encoding=EncType.seqcounter, vpool=vpool)
+                enc_atmost = CardEnc.atmost(
+                    lits=occupiers, bound=1, encoding=EncType.seqcounter, vpool=vpool
+                )
                 self.cnf.extend(enc_atmost.clauses)
 
         if vpool.top is not None:
@@ -224,7 +229,7 @@ class PolyominoSolver:
     def add_outside_adjacency_constraints(self):
         """
         Encodes the constraint that adjacent tiles
-        to an outside tile (including diagonals) should be 
+        to an outside tile (including diagonals) should be
         either an outside tile or a fence (polyomino)
         """
         for x in range(self.width):
@@ -243,17 +248,31 @@ class PolyominoSolver:
         Also ensures that there are exactly total_tiles tiles.
         This ensures that pentominos do not overlap.
         """
-        tf_literals = [self.get_tf_var(x, y) for x in range(self.width) for y in range(self.height)]
-        ti_literals = [self.get_ti_var(x, y) for x in range(self.width) for y in range(self.height)]
+        tf_literals = [
+            self.get_tf_var(x, y) for x in range(self.width) for y in range(self.height)
+        ]
+        ti_literals = [
+            self.get_ti_var(x, y) for x in range(self.width) for y in range(self.height)
+        ]
 
         total_tiles = len(self.polyominoes[0].default_tiles) * len(self.polyominoes)
 
         vpool = IDPool(start_from=self.var_counter)
 
-        enc_eq = CardEnc.equals(lits=tf_literals, bound=total_tiles, encoding=EncType.seqcounter, vpool=vpool)
+        enc_eq = CardEnc.equals(
+            lits=tf_literals,
+            bound=total_tiles,
+            encoding=EncType.seqcounter,
+            vpool=vpool,
+        )
         self.cnf.extend(enc_eq.clauses)
 
-        enc_ge = CardEnc.atleast(lits=ti_literals, bound=self.inside_tiles_minimum, encoding=EncType.seqcounter, vpool=vpool)
+        enc_ge = CardEnc.atleast(
+            lits=ti_literals,
+            bound=self.inside_tiles_minimum,
+            encoding=EncType.seqcounter,
+            vpool=vpool,
+        )
         self.cnf.extend(enc_ge.clauses)
 
         if vpool.top is not None:
@@ -272,24 +291,22 @@ class PolyominoSolver:
             self.cnf.append([self.get_to_var(x, self.height - 1)])
 
         for y in range(self.height):
-            self.cnf.append([self.get_to_var(0, y)])             
+            self.cnf.append([self.get_to_var(0, y)])
             self.cnf.append([self.get_to_var(self.width - 1, y)])
 
-# END CONSTRAINTS DEFINITIONS
+    # END CONSTRAINTS DEFINITIONS
 
     def solve(self) -> bool:
         print("BEGIN BUILDING MAP")
         t0 = time.time()
         self.build_map()
-        
+
         build_map_time = time.time() - t0
         print(f"Built map in {build_map_time:.2f} seconds")
         print()
         print("BEGIN CONSTRAINT BUILDING")
         t1 = time.time()
 
-        # TODO: write down how many clauses each constraint
-        # contributes to the encoding
         self.add_exactly_one_polyomino_constraint()
         self.add_no_overlap_constraints()
         self.add_tile_partition_constraints()
@@ -351,7 +368,7 @@ class PolyominoSolver:
                 if self._is_true(ci):
                     grid[y][x] = "+"
 
-        for (x, y, r, i) in self.get_placements():
+        for x, y, r, i in self.get_placements():
             tiles = self.get_polyomino_tiles(i, x, y, r)
             name = self.polyominoes[i].name
             for tx, ty in tiles:
@@ -366,6 +383,7 @@ class PolyominoSolver:
         for row in reversed(grid):
             print("*" + "".join(row) + "*")
         print("*" + "*" * self.width + "*")
+
 
 """
 Note on notation:

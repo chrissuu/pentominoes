@@ -1,4 +1,5 @@
-from Polyomino import Polyomino
+from polyomino import Polyomino
+
 
 class I4(Polyomino):
     """
@@ -51,6 +52,7 @@ class N4(Polyomino):
 
     name = "N"
     default_tiles = [(0, 0), (1, 0), (1, 1), (2, 1)]
+
 
 ALL_TETROMINOES = [
     I4(),

@@ -1,4 +1,5 @@
-from Polyomino import Polyomino
+from polyomino import Polyomino
+
 
 class F5(Polyomino):
     """
