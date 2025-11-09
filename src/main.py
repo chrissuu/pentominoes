@@ -1,7 +1,7 @@
 import functools
 import time
 from copy import deepcopy
-from typing import Dict
+from typing import Dict, Sequence
 
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
@@ -25,38 +25,34 @@ def log_diff(fn):
 
 
 class PolyominoSolver:
-    def __init__(self, width: int, height: int, inside_tiles_minimum, polyominoes):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        inside_tiles_minimum: int,
+        polyominoes: Sequence[Polyomino],
+    ):
         self.width = width
         self.height = height
         self.inside_tiles_minimum = inside_tiles_minimum
         self.polyominoes = polyominoes
 
-        self.var_counter = 1
-
-        self.p_vars: Dict[Tuple[int, int, int, int], int] = {}
-
-        self.tf_vars: Dict[Tuple[int, int], int] = {}
-        self.ti_vars: Dict[Tuple[int, int], int] = {}
-        self.to_vars: Dict[Tuple[int, int], int] = {}
+        self.vpool = IDPool()
+        self.p_vars = set()
+        self.cell_to_placements = None
 
         self.cnf = CNF()
         self.model = None
-
-    def _new_var(self) -> int:
-        v = self.var_counter
-        self.var_counter += 1
-        return v
 
     def get_p_var(self, x: int, y: int, r: int, i: int) -> int:
         """
         Polyomino tile
 
+        Represents placing polyomino i at position (x,y) with rotation r.
         See Polyomino.py for an encoding
         """
-        key = (x, y, r, i)
-        if key not in self.p_vars:
-            self.p_vars[key] = self._new_var()
-        return self.p_vars[key]
+        self.p_vars.add((x, y, r, i))
+        return self.vpool.id(f"p_{x}_{y}_{r}_{i}")
 
     def get_tf_var(self, x: int, y: int) -> int:
         """
@@ -65,10 +61,7 @@ class PolyominoSolver:
         Returns the variable representing whether (x,y) is
         a fence tile. creates one if it does not exist.
         """
-        key = (x, y)
-        if key not in self.tf_vars:
-            self.tf_vars[key] = self._new_var()
-        return self.tf_vars[key]
+        return self.vpool.id(f"tf_{x}_{y}")
 
     def get_ti_var(self, x: int, y: int) -> int:
         """
@@ -77,10 +70,7 @@ class PolyominoSolver:
         Returns the variable representing whether (x,y) is
         an inside tile. creates one if it does not exist.
         """
-        key = (x, y)
-        if key not in self.ti_vars:
-            self.ti_vars[key] = self._new_var()
-        return self.ti_vars[key]
+        return self.vpool.id(f"ti_{x}_{y}")
 
     def get_to_var(self, x: int, y: int) -> int:
         """
@@ -89,10 +79,7 @@ class PolyominoSolver:
         Returns the variable representing whether (x,y) is
         an outside tile. Creates one if it does not exist.
         """
-        key = (x, y)
-        if key not in self.to_vars:
-            self.to_vars[key] = self._new_var()
-        return self.to_vars[key]
+        return self.vpool.id(f"to_{x}_{y}")
 
     def get_polyomino_tiles(
         self, polyomino_idx: int, x: int, y: int, rotation: int
@@ -156,7 +143,6 @@ class PolyominoSolver:
         For each polyomino i, choose exactly one placement (corner x,y and rotation r).
         Uses a single cardinality encoding instead of pairwise exclusions.
         """
-        vpool = IDPool(start_from=self.var_counter)
         for i in range(len(self.polyominoes)):
             placements = []
             for x in range(self.width):
@@ -170,12 +156,9 @@ class PolyominoSolver:
                 continue
 
             enc_eq = CardEnc.equals(
-                lits=placements, bound=1, encoding=EncType.seqcounter, vpool=vpool
+                lits=placements, bound=1, encoding=EncType.seqcounter, vpool=self.vpool
             )
             self.cnf.extend(enc_eq.clauses)
-
-        if vpool.top is not None:
-            self.var_counter = max(self.var_counter, vpool.top + 1)
 
     @log_diff
     def add_no_overlap_constraints(self):
@@ -185,16 +168,15 @@ class PolyominoSolver:
         if not self.cell_to_placements:
             self.build_map()
 
-        vpool = IDPool(start_from=self.var_counter)
         for occupiers in self.cell_to_placements.values():
             if len(occupiers) > 1:
                 enc_atmost = CardEnc.atmost(
-                    lits=occupiers, bound=1, encoding=EncType.seqcounter, vpool=vpool
+                    lits=occupiers,
+                    bound=1,
+                    encoding=EncType.seqcounter,
+                    vpool=self.vpool,
                 )
                 self.cnf.extend(enc_atmost.clauses)
-
-        if vpool.top is not None:
-            self.var_counter = max(self.var_counter, vpool.top + 1)
 
     @log_diff
     def add_tile_partition_constraints(self):
@@ -255,15 +237,15 @@ class PolyominoSolver:
             self.get_ti_var(x, y) for x in range(self.width) for y in range(self.height)
         ]
 
-        total_tiles = len(self.polyominoes[0].default_tiles) * len(self.polyominoes)
-
-        vpool = IDPool(start_from=self.var_counter)
+        total_tiles = sum(
+            len(polyomino.default_tiles) for polyomino in self.polyominoes
+        )
 
         enc_eq = CardEnc.equals(
             lits=tf_literals,
             bound=total_tiles,
             encoding=EncType.seqcounter,
-            vpool=vpool,
+            vpool=self.vpool,
         )
         self.cnf.extend(enc_eq.clauses)
 
@@ -271,12 +253,9 @@ class PolyominoSolver:
             lits=ti_literals,
             bound=self.inside_tiles_minimum,
             encoding=EncType.seqcounter,
-            vpool=vpool,
+            vpool=self.vpool,
         )
         self.cnf.extend(enc_ge.clauses)
-
-        if vpool.top is not None:
-            self.var_counter = max(self.var_counter, vpool.top + 1)
 
     @log_diff
     def add_outside_border_constraints(self):
@@ -318,7 +297,7 @@ class PolyominoSolver:
         build_time = time.time() - t1
 
         num_clauses = len(self.cnf.clauses)
-        num_vars = self.var_counter - 1
+        num_vars = self.vpool.top
         avg_clause_len = (
             sum(len(c) for c in self.cnf.clauses) / num_clauses if num_clauses else 0
         )
@@ -351,8 +330,8 @@ class PolyominoSolver:
 
     def get_placements(self) -> List[Tuple[int, int, int, int]]:
         placements = []
-        for (x, y, r, i), var in self.p_vars.items():
-            if self._is_true(var):
+        for x, y, r, i in self.p_vars:
+            if self._is_true(self.get_p_var(x, y, r, i)):
                 placements.append((x, y, r, i))
         return placements
 
