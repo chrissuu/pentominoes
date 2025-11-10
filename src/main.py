@@ -100,7 +100,13 @@ class PolyominoSolver:
         return tiles
 
     def is_valid_placement(self, tiles: List[Tuple[int, int]]) -> bool:
-        return all(0 <= tx < self.width and 0 <= ty < self.height for tx, ty in tiles)
+        """
+        Checks if all tiles fall within the valid area of the board.
+        Border cells should not be occupied by polyominoes.
+        """
+        return all(
+            1 <= tx < self.width - 1 and 1 <= ty < self.height - 1 for tx, ty in tiles
+        )
 
     def neighbors4(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
@@ -289,6 +295,14 @@ class PolyominoSolver:
             self.cnf.append([self.get_to_var(0, y)])
             self.cnf.append([self.get_to_var(self.width - 1, y)])
 
+    @log_diff
+    def add_symmetry_breaking_constraints(self):
+        """
+        Break translation symmetry by forcing solution to have at least one tile in the first row and column
+        """
+        self.cnf.append([self.get_tf_var(x, 1) for x in range(1, self.width - 1)])
+        self.cnf.append([self.get_tf_var(1, y) for y in range(1, self.height - 1)])
+
     # END CONSTRAINTS DEFINITIONS
 
     def solve(self) -> bool:
@@ -309,6 +323,7 @@ class PolyominoSolver:
         self.add_outside_adjacency_constraints()
         self.add_cardinality_constraints()
         self.add_outside_border_constraints()
+        self.add_symmetry_breaking_constraints()
 
         build_time = time.time() - t1
 
