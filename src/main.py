@@ -37,6 +37,12 @@ class PolyominoSolver:
         self.height = height
         self.inside_tiles_minimum = inside_tiles_minimum
         self.polyominoes = polyominoes
+        # Symmetry breaking: fix one polyomino to a canonical rotation
+        fixed_rotation_poly = next(p for p in polyominoes if p.rotation_index == 4)
+        fixed_rotation_poly.rotation_index = 1
+        # Symmetry breaking: fix one polyomino to a canonical reflection
+        fixed_reflection_poly = next(p for p in polyominoes if p.reflection_index == 2)
+        fixed_reflection_poly.reflection_index = 1
 
         self.vpool = IDPool()
         self.p_vars = set()
