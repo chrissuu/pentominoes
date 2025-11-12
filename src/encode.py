@@ -1,4 +1,6 @@
 """
+11/12:
+128 + 129 CNF formulas, send both
 11/5
 TODO:
 1.) See if solution satisfies formula
