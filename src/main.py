@@ -32,17 +32,29 @@ class PolyominoSolver:
         height: int,
         inside_tiles_minimum: int,
         polyominoes: Sequence[Polyomino],
+        break_global_symmetries: bool = True,
+        break_polyomino_symmetries: bool = True,
     ):
         self.width = width
         self.height = height
         self.inside_tiles_minimum = inside_tiles_minimum
         self.polyominoes = polyominoes
-        # Symmetry breaking: fix one polyomino to a canonical rotation
-        fixed_rotation_poly = next(p for p in polyominoes if p.rotation_index == 4)
-        fixed_rotation_poly.rotation_index = 1
-        # Symmetry breaking: fix one polyomino to a canonical reflection
-        fixed_reflection_poly = next(p for p in polyominoes if p.reflection_index == 2)
-        fixed_reflection_poly.reflection_index = 1
+
+        self.break_global_symmetries = break_global_symmetries
+        if self.break_global_symmetries:
+            # Symmetry breaking: fix one polyomino to a canonical rotation
+            p_fixed_rotation = next(p for p in polyominoes if p.rotation_index == 4)
+            p_fixed_rotation.rotation_index = 1
+            # Symmetry breaking: fix one polyomino to a canonical reflection
+            p_fixed_reflection = next(p for p in polyominoes if p.reflection_index == 2)
+            p_fixed_reflection.reflection_index = 1
+
+        self.break_polyomino_symmetries = break_polyomino_symmetries
+        if not self.break_polyomino_symmetries:
+            # Try all rotations and reflections for all polyominoes, regardless of symmetry
+            for poly in self.polyominoes:
+                poly.rotation_index = 4
+                poly.reflection_index = 2
 
         self.vpool = IDPool()
         self.p_vars = set()
@@ -296,7 +308,7 @@ class PolyominoSolver:
             self.cnf.append([self.get_to_var(self.width - 1, y)])
 
     @log_diff
-    def add_symmetry_breaking_constraints(self):
+    def add_global_symmetry_breaking_constraints(self):
         """
         Break translation symmetry by forcing solution to have at least one tile in the first row and column
         """
@@ -323,7 +335,8 @@ class PolyominoSolver:
         self.add_outside_adjacency_constraints()
         self.add_cardinality_constraints()
         self.add_outside_border_constraints()
-        self.add_symmetry_breaking_constraints()
+        if self.break_global_symmetries:
+            self.add_global_symmetry_breaking_constraints()
 
         build_time = time.time() - t1
 
