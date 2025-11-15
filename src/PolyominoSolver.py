@@ -1,6 +1,4 @@
-import itertools
 import time
-import argparse
 from copy import deepcopy
 
 from pysat.formula import CNF, IDPool
@@ -28,11 +26,12 @@ def log_diff(fn):
     
 
 class PolyominoSolver:
-    def __init__(self, width: int, height: int, inside_tiles_minimum, polyominoes):
+    def __init__(self, width: int, height: int, inside_tiles_minimum, k, polyominoes):
         self.width = width
         self.height = height
         self.inside_tiles_minimum = inside_tiles_minimum
         self.polyominoes = polyominoes
+        self.k = k
 
         self.var_counter = 1
 
@@ -41,6 +40,7 @@ class PolyominoSolver:
         self.tf_vars: Dict[Tuple[int, int], int] = {}
         self.ti_vars: Dict[Tuple[int, int], int] = {}
         self.to_vars: Dict[Tuple[int, int], int] = {}
+        self.use_vars = {}
 
         self.cnf = CNF()
         self.model = None
@@ -96,6 +96,12 @@ class PolyominoSolver:
         if key not in self.to_vars:
             self.to_vars[key] = self._new_var()
         return self.to_vars[key]
+
+    def get_use_var(self, i):
+        if i not in self.use_vars:
+            self.use_vars[i] = self._new_var()
+        return self.use_vars[i]
+
 
     def get_polyomino_tiles(
         self, polyomino_idx: int, x: int, y: int, rotation: int
@@ -154,7 +160,8 @@ class PolyominoSolver:
         For each polyomino i, choose exactly one placement (corner x,y and rotation r).
         Uses a single cardinality encoding instead of pairwise exclusions.
         """
-        vpool = IDPool(start_from=self.var_counter)
+        # First pass: collect all placements per polyomino (allocates all p-vars)
+        all_placements_per_poly = []
         for i in range(len(self.polyominoes)):
             placements = []
             for x in range(self.width):
@@ -163,12 +170,21 @@ class PolyominoSolver:
                         tiles = self.get_polyomino_tiles(i, x, y, r)
                         if self.is_valid_placement(tiles):
                             placements.append(self.get_p_var(x, y, r, i))
+            all_placements_per_poly.append(placements)
 
+        # Now create IDPool after all "real" vars have been allocated
+        vpool = IDPool(start_from=self.var_counter)
+
+        for placements in all_placements_per_poly:
             if not placements:
                 continue
 
-            enc_eq = CardEnc.equals(lits=placements, bound=1,
-                                    encoding=EncType.seqcounter, vpool=vpool)
+            enc_eq = CardEnc.equals(
+                lits=placements,
+                bound=1,
+                encoding=EncType.seqcounter,
+                vpool=vpool
+            )
             self.cnf.extend(enc_eq.clauses)
 
         if vpool.top is not None:
@@ -236,29 +252,58 @@ class PolyominoSolver:
                     self.cnf.append([-to_xy, -ti_n])
 
     @log_diff
-    def add_cardinality_constraints(self):
+    def add_total_tiles_constraint(self):
         """
-        Ensures that there are at least self.inside_tiles_minimum
-        inside tiles.
-
-        Also ensures that there are exactly total_tiles tiles.
-        This ensures that pentominos do not overlap.
+        Ensures that the total number of filled tiles equals the total
+        number of polyomino tiles combined. This prevents overlaps.
         """
-        tf_literals = [self.get_tf_var(x, y) for x in range(self.width) for y in range(self.height)]
-        ti_literals = [self.get_ti_var(x, y) for x in range(self.width) for y in range(self.height)]
-
-        total_tiles = len(self.polyominoes[0].default_tiles) * len(self.polyominoes)
+        tf_literals = [self.get_tf_var(x, y)
+                    for x in range(self.width)
+                    for y in range(self.height)]
+        
+        if self.k != None:
+            total_tiles = len(self.polyominoes[0].default_tiles) * self.k
+        else:
+            total_tiles = len(self.polyominoes[0].default_tiles) * len(self.polyominoes)
 
         vpool = IDPool(start_from=self.var_counter)
 
-        enc_eq = CardEnc.equals(lits=tf_literals, bound=total_tiles, encoding=EncType.seqcounter, vpool=vpool)
+        enc_eq = CardEnc.equals(lits=tf_literals,
+                                bound=total_tiles,
+                                encoding=EncType.seqcounter,
+                                vpool=vpool)
         self.cnf.extend(enc_eq.clauses)
 
-        enc_ge = CardEnc.atleast(lits=ti_literals, bound=self.inside_tiles_minimum, encoding=EncType.seqcounter, vpool=vpool)
+        if vpool.top is not None:
+            self.var_counter = max(self.var_counter, vpool.top + 1)
+
+    @log_diff
+    def add_inside_tiles_constraint(self):
+        """
+        Ensures that there are at least `self.inside_tiles_minimum`
+        inside tiles.
+        """
+        ti_literals = [self.get_ti_var(x, y)
+                    for x in range(self.width)
+                    for y in range(self.height)]
+
+        vpool = IDPool(start_from=self.var_counter)
+
+        enc_ge = CardEnc.atleast(lits=ti_literals,
+                                bound=self.inside_tiles_minimum,
+                                encoding=EncType.seqcounter,
+                                vpool=vpool)
         self.cnf.extend(enc_ge.clauses)
 
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
+
+
+    @log_diff
+    def add_cardinality_constraints(self):
+        self.add_total_tiles_constraint()
+        self.add_inside_tiles_constraint()
+
 
     @log_diff
     def add_outside_border_constraints(self):
@@ -276,9 +321,80 @@ class PolyominoSolver:
             self.cnf.append([self.get_to_var(0, y)])             
             self.cnf.append([self.get_to_var(self.width - 1, y)])
 
-# END CONSTRAINTS DEFINITIONS
+    @log_diff
+    def add_polyomino_selection_constraint(self, c):
+        """
+        Efficient encoding:
+        - each polyomino i has a use-var: use[i]
+        - if use[i] = 0 → no placements allowed
+        - if use[i] = 1 → exactly one placement allowed
+        - exactly c polyominoes must be used.
+        """
 
-    def solve(self) -> bool:
+        # First pass: allocate all use-vars and placement vars,
+        # and collect placements per polyomino.
+        use_vars = []
+        all_placements_per_poly = []
+
+        for i in range(len(self.polyominoes)):
+            ui = self.get_use_var(i)
+            use_vars.append(ui)
+
+            placements = []
+            for x in range(self.width):
+                for y in range(self.height):
+                    for r in range(4):
+                        tiles = self.get_polyomino_tiles(i, x, y, r)
+                        if self.is_valid_placement(tiles):
+                            placements.append(self.get_p_var(x, y, r, i))
+
+            all_placements_per_poly.append(placements)
+
+        # Now create IDPool after all "real" vars have been allocated.
+        vpool = IDPool(start_from=self.var_counter)
+
+        # Local constraints per polyomino.
+        for i, placements in enumerate(all_placements_per_poly):
+            ui = use_vars[i]
+
+            if not placements:
+                # If no placements exist, force this polyomino unused.
+                self.cnf.append([-ui])
+                continue
+
+            # 1. At-most-one placement (unconditional, very cheap).
+            amo = CardEnc.atmost(
+                lits=placements,
+                bound=1,
+                encoding=EncType.seqcounter,
+                vpool=vpool
+            )
+            self.cnf.extend(amo.clauses)
+
+            # 2. If use[i] = 1 → at least one placement:
+            #    (-ui ∨ p1 ∨ p2 ∨ ... ∨ pk)
+            self.cnf.append([-ui] + placements)
+
+            # 3. If use[i] = 0 → no placements:
+            #    (p → ui)  is  (-p ∨ ui)
+            for p in placements:
+                self.cnf.append([-p, ui])
+
+        # 4. Exactly c polyominoes selected.
+        enc_eq = CardEnc.equals(
+            lits=use_vars,
+            bound=c,
+            encoding=EncType.seqcounter,
+            vpool=vpool
+        )
+        self.cnf.extend(enc_eq.clauses)
+
+        if vpool.top is not None:
+            self.var_counter = max(self.var_counter, vpool.top + 1)
+
+
+
+    def build_constraints(self):
         print("BEGIN BUILDING MAP")
         t0 = time.time()
         self.build_map()
@@ -291,12 +407,15 @@ class PolyominoSolver:
 
         # TODO: write down how many clauses each constraint
         # contributes to the encoding
-        self.add_exactly_one_polyomino_constraint()
+        if self.k != None:
+            self.add_polyomino_selection_constraint(self.k)
+        else:
+            self.add_exactly_one_polyomino_constraint()
+        self.add_cardinality_constraints()
         self.add_no_overlap_constraints()
         self.add_tile_partition_constraints()
         self.add_link_fence_to_placements_constraint()
         self.add_outside_adjacency_constraints()
-        self.add_cardinality_constraints()
         self.add_outside_border_constraints()
 
         build_time = time.time() - t1
@@ -313,6 +432,10 @@ class PolyominoSolver:
         print(f"  Avg clause length: {avg_clause_len:.2f}")
         print()
 
+# END CONSTRAINTS DEFINITIONS
+
+    def solve(self) -> bool:
+        self.build_constraints()
         print("BEGIN SOLVING")
         solver = Cadical195()
         for clause in self.cnf.clauses:
@@ -367,3 +490,6 @@ class PolyominoSolver:
         for row in reversed(grid):
             print("*" + "".join(row) + "*")
         print("*" + "*" * self.width + "*")
+
+    def save_to(self, file):
+        self.cnf.to_file(file)

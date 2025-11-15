@@ -10,22 +10,6 @@ We use to, ti, tf to represent:
 -> "Tile inside"
 -> "Tile fence"
 """
-def solver():
-    ALL_PENTOMINOES = [
-        F5(),
-        I5(),
-        L5(),
-        N5(),
-        P5(),
-        T5(),
-        U5(),
-        V5(),
-        W5(),
-        X5(),
-        Y5(),
-        Z5(),
-    ]
-
 
 # ALL_TETROMINOES = [
 #     I4(),
@@ -37,12 +21,11 @@ def solver():
 
 if __name__ == "__main__":
     import copy
-    solver = PolyominoSolver(10, 10, 9, ALL_TETROMINOES)
-    assert solver.solve()
-
-    solver = PolyominoSolver(16, 16, 80, ALL_TETROMINOES + copy.deepcopy(ALL_TETROMINOES))
-    if solver.solve():
-        print("Solution found!")
-        solver.print_board()
-    else:
-        print("No solution.")
+    # solver = PolyominoSolver(16, 16, 128, None, ALL_PENTOMINOES)
+    # solver.build_constraints()
+    # solver.save_to("128.cnf")
+    # solver.solve()
+    for i in range(17, 20):
+        solver = PolyominoSolver(16, 16, 129, None, ALL_PENTOMINOES)
+        solver.build_constraints()
+        solver.save_to(f"{i}_{i}_129.cnf")
