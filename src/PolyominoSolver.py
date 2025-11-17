@@ -435,7 +435,7 @@ class PolyominoSolver:
         else:
             self.add_exactly_one_polyomino_constraint()
         self.add_cardinality_constraints()
-        self.add_no_overlap_constraints()
+        # self.add_no_overlap_constraints()
         self.add_tile_partition_constraints()
         self.add_link_fence_to_placements_constraint()
         self.add_outside_adjacency_constraints()
@@ -464,7 +464,7 @@ class PolyominoSolver:
     def solve(self) -> bool:
         self.build_constraints()
         print("BEGIN SOLVING")
-        solver = MapleChrono()
+        solver = Cadical195()
         for clause in self.cnf.clauses:
             solver.add_clause(clause)
 
