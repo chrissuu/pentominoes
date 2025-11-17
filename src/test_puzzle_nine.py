@@ -4,11 +4,11 @@ from Pentomino import ALL_PENTOMINOES
 seconds = int
 
 PUZZLE_NINE_INSTANCES = [
-    (3, 6,   (5, 5)),
-    (4, 12,  (7, 6)),
-    (5, 21,  (6, 8)),
-    (6, 32,  (9, 9)),
-    (7, 43,  (11, 9)),
+    # (3, 6,   (5, 5)),
+    # (4, 12,  (7, 6)),
+    # (5, 21,  (6, 8)),
+    # (6, 32,  (9, 9)),
+    # (7, 43,  (11, 9)),
     (8, 61,  (11, 12)),
     (9, 70,  (11, 13)),
     (10, 84, (12, 14)),
@@ -31,7 +31,8 @@ def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print
         k, 
         polyominoes,
         True,
-        False)
+        False,
+        model_save_path=f"models/{k}x{inside_min}x{width}x{height}.txt")
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
