@@ -5,7 +5,7 @@ from pysat.formula import CNF, IDPool
 from pysat.solvers import Cadical195
 from pysat.card import CardEnc, EncType
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Sequence
 
 from polyomino import *
 from Pentomino import *
@@ -26,12 +26,38 @@ def log_diff(fn):
     
 
 class PolyominoSolver:
-    def __init__(self, width: int, height: int, inside_tiles_minimum, k, polyominoes):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        inside_tiles_minimum: int,
+        k: int,
+        polyominoes: Sequence[Polyomino],
+        break_global_symmetries: bool = True,
+        break_polyomino_symmetries: bool = True,
+    ):
         self.width = width
         self.height = height
         self.inside_tiles_minimum = inside_tiles_minimum
         self.polyominoes = polyominoes
         self.k = k
+
+        self.break_global_symmetries = break_global_symmetries
+        if self.break_global_symmetries:
+            print(polyominoes)
+            # Symmetry breaking: fix one polyomino to a canonical rotation
+            p_fixed_rotation = next(p for p in polyominoes if p.rotation_index == 4)
+            p_fixed_rotation.rotation_index = 1
+            # Symmetry breaking: fix one polyomino to a canonical reflection
+            p_fixed_reflection = next(p for p in polyominoes if p.reflection_index == 2)
+            p_fixed_reflection.reflection_index = 1
+
+        self.break_polyomino_symmetries = break_polyomino_symmetries
+        if not self.break_polyomino_symmetries:
+            # Try all rotations and reflections for all polyominoes, regardless of symmetry
+            for poly in self.polyominoes:
+                poly.rotation_index = 4
+                poly.reflection_index = 2
 
         self.var_counter = 1
 
@@ -160,7 +186,6 @@ class PolyominoSolver:
         For each polyomino i, choose exactly one placement (corner x,y and rotation r).
         Uses a single cardinality encoding instead of pairwise exclusions.
         """
-        # First pass: collect all placements per polyomino (allocates all p-vars)
         all_placements_per_poly = []
         for i in range(len(self.polyominoes)):
             placements = []
@@ -172,7 +197,6 @@ class PolyominoSolver:
                             placements.append(self.get_p_var(x, y, r, i))
             all_placements_per_poly.append(placements)
 
-        # Now create IDPool after all "real" vars have been allocated
         vpool = IDPool(start_from=self.var_counter)
 
         for placements in all_placements_per_poly:
@@ -323,16 +347,6 @@ class PolyominoSolver:
 
     @log_diff
     def add_polyomino_selection_constraint(self, c):
-        """
-        Efficient encoding:
-        - each polyomino i has a use-var: use[i]
-        - if use[i] = 0 → no placements allowed
-        - if use[i] = 1 → exactly one placement allowed
-        - exactly c polyominoes must be used.
-        """
-
-        # First pass: allocate all use-vars and placement vars,
-        # and collect placements per polyomino.
         use_vars = []
         all_placements_per_poly = []
 
@@ -350,19 +364,15 @@ class PolyominoSolver:
 
             all_placements_per_poly.append(placements)
 
-        # Now create IDPool after all "real" vars have been allocated.
         vpool = IDPool(start_from=self.var_counter)
 
-        # Local constraints per polyomino.
         for i, placements in enumerate(all_placements_per_poly):
             ui = use_vars[i]
 
             if not placements:
-                # If no placements exist, force this polyomino unused.
                 self.cnf.append([-ui])
                 continue
 
-            # 1. At-most-one placement (unconditional, very cheap).
             amo = CardEnc.atmost(
                 lits=placements,
                 bound=1,
@@ -371,16 +381,11 @@ class PolyominoSolver:
             )
             self.cnf.extend(amo.clauses)
 
-            # 2. If use[i] = 1 → at least one placement:
-            #    (-ui ∨ p1 ∨ p2 ∨ ... ∨ pk)
             self.cnf.append([-ui] + placements)
 
-            # 3. If use[i] = 0 → no placements:
-            #    (p → ui)  is  (-p ∨ ui)
             for p in placements:
                 self.cnf.append([-p, ui])
 
-        # 4. Exactly c polyominoes selected.
         enc_eq = CardEnc.equals(
             lits=use_vars,
             bound=c,
@@ -391,8 +396,14 @@ class PolyominoSolver:
 
         if vpool.top is not None:
             self.var_counter = max(self.var_counter, vpool.top + 1)
-
-
+        
+    @log_diff
+    def add_global_symmetry_breaking_constraints(self):
+        """
+        Break translation symmetry by forcing solution to have at least one tile in the first row and column
+        """
+        self.cnf.append([self.get_tf_var(x, 1) for x in range(1, self.width - 1)])
+        self.cnf.append([self.get_tf_var(1, y) for y in range(1, self.height - 1)])
 
     def build_constraints(self):
         print("BEGIN BUILDING MAP")
@@ -417,6 +428,9 @@ class PolyominoSolver:
         self.add_link_fence_to_placements_constraint()
         self.add_outside_adjacency_constraints()
         self.add_outside_border_constraints()
+
+        if self.break_global_symmetries:
+            self.add_global_symmetry_breaking_constraints()
 
         build_time = time.time() - t1
 

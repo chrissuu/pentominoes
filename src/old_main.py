@@ -416,6 +416,7 @@ We use to, ti, tf to represent:
 -> "Tile inside"
 -> "Tile fence"
 """
+# DEPRECATED: REFER TO PolyominoSolver.py
 if __name__ == "__main__":
     # solver = PolyominoSolver(10, 10, 10, ALL_TETROMINOES)
     # solver = PolyominoSolver(10, 10, 10, ALL_TETROMINOES)

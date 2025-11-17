@@ -24,7 +24,14 @@ def timeout_handler(signum, frame):
 
 def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print_board=True):
     print(f"\n=== TEST CASE: {name} ===")
-    solver = PolyominoSolver(width, height, inside_min, k, polyominoes)
+    solver = PolyominoSolver(
+        width, 
+        height, 
+        inside_min,
+        k, 
+        polyominoes,
+        True,
+        False)
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)

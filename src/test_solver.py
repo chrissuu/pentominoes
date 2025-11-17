@@ -21,11 +21,7 @@ We use to, ti, tf to represent:
 
 if __name__ == "__main__":
     import copy
-    # solver = PolyominoSolver(16, 16, 128, None, ALL_PENTOMINOES)
+    solver = PolyominoSolver(20, 20, 128, None, ALL_PENTOMINOES)
     # solver.build_constraints()
     # solver.save_to("128.cnf")
-    # solver.solve()
-    for i in range(17, 20):
-        solver = PolyominoSolver(16, 16, 129, None, ALL_PENTOMINOES)
-        solver.build_constraints()
-        solver.save_to(f"{i}_{i}_129.cnf")
+    solver.solve()
