@@ -9,10 +9,10 @@ PUZZLE_NINE_INSTANCES = [
     # (5, 21,  (6, 8)),
     # (6, 34,  (9, 9)),
     # (7, 47,  (11, 9)),
-    (8, 62,  (11, 12)), # proves n=62 is upper bound (n=63 is UNSAT) in 620 seconds, bounded area by +3
-    (9, 78,  (11, 13)), # timed out after 1 hr on 79
-    (10, 84, (12, 14)), # ~ 2 minutes to solve LB=88
-    (11, 102,(12, 15)),
+    # (8, 62,  (11, 12)), # proves n=62 is upper bound (n=63 is UNSAT) in 620 seconds, bounded area by +3
+    # (9, 78,  (11, 13)), # timed out after 1 hr on 79
+    # (10, 93, (12, 14)), # ~ 36 minutes to solve LB=93, LB=94 might be UNSAT
+    (11, 102,(12, 15)), # LB=103 in 205seconds
     (12, 128,(18, 16)),
 ]
 
@@ -59,13 +59,17 @@ def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print
 results = {}
 
 TIMEOUT = 60 * 60
+WIDTH_EXPANDER = 3
 
 for n, LB, area in PUZZLE_NINE_INSTANCES:
     width, height = area
+    width = min(width + WIDTH_EXPANDER, 20)
+    height = min(height + WIDTH_EXPANDER, 20)
+
     print(f"Validating LB={LB} for n={n}...")
     sat = run(
         f"Puzzle Nine {n}:{LB}",
-        width + 3, height + 3,
+        width, height,
         LB, n,
         ALL_PENTOMINOES,
         TIMEOUT,
