@@ -171,6 +171,7 @@ class PolyominoSolver:
         for i, _ in enumerate(self.polyominoes):
             for x in range(self.width):
                 for y in range(self.height):
+                    # TODO: change this to deduplicate symmetric polyominoes
                     for r in range(4):
                         tiles = self.get_polyomino_tiles(i, x, y, r)
                         if not self.is_valid_placement(tiles):
@@ -193,6 +194,7 @@ class PolyominoSolver:
             placements = []
             for x in range(self.width):
                 for y in range(self.height):
+                    # TODO: change this to deduplicate symmetric polyominoes
                     for r in range(4):
                         tiles = self.get_polyomino_tiles(i, x, y, r)
                         if self.is_valid_placement(tiles):
@@ -325,7 +327,6 @@ class PolyominoSolver:
             self.var_counter = max(self.var_counter, vpool.top + 1)
 
 
-    @log_diff
     def add_cardinality_constraints(self):
         self.add_total_tiles_constraint()
         self.add_inside_tiles_constraint()
@@ -359,6 +360,7 @@ class PolyominoSolver:
             placements = []
             for x in range(self.width):
                 for y in range(self.height):
+                    # TODO: change this to account for symmetric polyominoes
                     for r in range(4):
                         tiles = self.get_polyomino_tiles(i, x, y, r)
                         if self.is_valid_placement(tiles):
