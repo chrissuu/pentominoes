@@ -1,4 +1,21 @@
 """
+11/19:
+Constraint: 
+For each cell: if fence cell: needs both in cell and an out cell nearby
+at least one in cell, at least one out cell
+
+Using solution for 128, ensure that formula is satisfiable
+
+Test UNSAT for smaller cases, 18x18, 19x19
+
+Check that in model different pieces are used (solution verifier)
+
+Run for longer?
+"""
+
+
+
+"""
 11/12:
 128 + 129 CNF formulas, send both
 11/5
