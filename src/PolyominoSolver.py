@@ -1,5 +1,6 @@
 import functools
 import time
+import sys, time, threading, psutil
 from copy import deepcopy
 from itertools import product
 from typing import Dict, Sequence
@@ -22,6 +23,20 @@ def log_diff(fn):
 
     return wrapper
 
+def solve_in_subprocess(clauses):
+    """
+    Standalone helper for multiprocessing: takes a list of CNF clauses (list[list[int]])
+    and returns (result, model), where result is a bool and model is a list[int] or None.
+    """
+    from pysat.solvers import Cadical195
+
+    solver = Cadical195()
+    for c in clauses:
+        solver.add_clause(c)
+
+    result = solver.solve()
+    model = solver.get_model() if result else None
+    return result, model
 
 class PolyominoSolver:
     def __init__(
@@ -381,13 +396,42 @@ class PolyominoSolver:
 
     @log_diff
     def add_fence_touch_inside_constraint(self):
+        """
+        Enforce that:
+          (1) there exists at least one fence cell that is 4-neighbor-adjacent
+              to an inside cell, and
+          (2) there exists at least one fence cell that is 4-neighbor-adjacent
+              to an outside cell.
+
+        We do this by introducing auxiliary variables that represent
+        "this particular fence–inside (or fence–outside) pair is active",
+        then require that at least one such variable is true in each group.
+        """
+        inside_touch_lits = []
+        outside_touch_lits = []
+
         for x in range(self.width):
             for y in range(self.height):
                 tf = self.get_tf_var(x, y)
-                neighbors = self.neighbors4(x, y)
-                ti_neighbors = [self.get_ti_var(nx, ny) for (nx, ny) in neighbors]
-                if ti_neighbors:
-                    self.cnf.append([-tf] + ti_neighbors)
+                for nx, ny in self.neighbors4(x, y):
+                    ti = self.get_ti_var(nx, ny)
+                    to = self.get_to_var(nx, ny)
+
+                    v_in = self.vpool.id(f"touch_in_{x}_{y}_{nx}_{ny}")
+                    self.cnf.append([-v_in, tf])
+                    self.cnf.append([-v_in, ti])
+                    inside_touch_lits.append(v_in)
+
+                    v_out = self.vpool.id(f"touch_out_{x}_{y}_{nx}_{ny}")
+                    self.cnf.append([-v_out, tf])
+                    self.cnf.append([-v_out, to])
+                    outside_touch_lits.append(v_out)
+
+        if inside_touch_lits:
+            self.cnf.append(inside_touch_lits)
+
+        if outside_touch_lits:
+            self.cnf.append(outside_touch_lits)
 
     def build_constraints(self):
         print("BEGIN BUILDING MAP")
@@ -410,7 +454,7 @@ class PolyominoSolver:
         self.add_link_fence_to_placements_constraint()
         self.add_outside_adjacency_constraints()
         self.add_outside_border_constraints()
-        # self.add_fence_touch_inside_constraint()
+        self.add_fence_touch_inside_constraint()
 
         if self.break_global_symmetries:
             self.add_global_symmetry_breaking_constraints()
@@ -432,26 +476,91 @@ class PolyominoSolver:
     # END CONSTRAINTS DEFINITIONS
 
     def solve(self) -> bool:
+        import multiprocessing as mp
+        import time
+
         self.build_constraints()
         print("BEGIN SOLVING")
-        solver = Cadical195()
-        for clause in self.cnf.clauses:
-            solver.add_clause(clause)
 
-        t2 = time.time()
-        result = solver.solve()
-        solve_time = time.time() - t2
+        clauses = self.cnf.clauses
 
-        print(f"Solving finished in {solve_time:.2f} seconds.")
+        with mp.Pool(1) as pool:
+            worker = pool._pool[0]
+            self._solver_pid = worker.pid
+
+            self._start_progress_timer(interval=0.1)
+
+            async_res = pool.apply_async(solve_in_subprocess, (clauses,))
+
+            t0 = time.time()
+            result, model = async_res.get()
+            solve_time = time.time() - t0
+
+        self._stop_progress_timer()
+        time.sleep(0.05)
+
+        print(f"\rSolving finished in {self._format_elapsed(solve_time)}.")
         print(f"SAT result: {'SATISFIABLE' if result else 'UNSATISFIABLE'}")
 
         if result:
-            self.model = solver.get_model()
+            self.model = model
             if self.model_save_path is not None:
                 self.save_model(self.model_save_path)
             return True
 
         return False
+
+
+    def _format_elapsed(self, seconds: float) -> str:
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        minutes = int(seconds // 60)
+        seconds = seconds % 60
+        if minutes < 60:
+            return f"{minutes}m {seconds:.1f}s"
+        hours = minutes // 60
+        minutes = minutes % 60
+        return f"{hours}h {minutes}m {seconds:.1f}s"
+
+    def _start_progress_timer(self, interval: float = 0.1):
+        import sys, time, threading, psutil
+
+        self._running_solve = True
+        start = time.time()
+
+        child = psutil.Process(self._solver_pid)
+
+        def loop():
+            while self._running_solve:
+                try:
+                    elapsed = time.time() - start
+
+                    cpu = child.cpu_percent(interval=None)
+                    mem = child.memory_info().rss / 1e6
+
+                    msg = (
+                        f"[elapsed] {self._format_elapsed(elapsed)} "
+                        f"| CPU {cpu:5.1f}% "
+                        f"| RAM {mem:7.1f} MB"
+                    )
+
+                    sys.stdout.write("\r" + msg + " " * 10)
+                    sys.stdout.flush()
+
+                    time.sleep(interval)
+
+                except Exception:
+                    break
+
+        t = threading.Thread(target=loop, daemon=True)
+        t.start()
+        self._progress_thread = t
+
+
+    def _stop_progress_timer(self):
+        self._running_solve = False
+        print("\r", end="", flush=True)
+
 
     def _is_true(self, var: int) -> bool:
         return self.model[var - 1] > 0
@@ -484,15 +593,54 @@ class PolyominoSolver:
 
         return grid
 
-    def print_board(self) -> None:
+    def print_board(self, solution_file: str | None = None) -> None:
+        """
+        If solution_file is provided, loads that model and displays the board for it.
+        Otherwise uses self.model (i.e., the live solver result).
+        """
+        old_model = self.model
+
+        if solution_file is not None:
+            loaded = self._load_model_file(solution_file)
+            if not loaded:
+                raise ValueError(f"Could not load a valid model from {solution_file}")
+            self.model = loaded
+
         grid = self.get_board()
+
         print("*" + "*" * self.width + "*")
         for row in reversed(grid):
             print("*" + "".join(row) + "*")
         print("*" + "*" * self.width + "*")
 
+        self.model = old_model
+
     def save_to(self, file):
         self.cnf.to_file(file)
+
+    def _load_model_file(self, file_path: str) -> list[int]:
+        """
+        Load a model file saved by save_model().
+        Expected format:
+            c ...
+            s SATISFIABLE
+            v lit1 lit2 ... 0
+            ...
+        Returns a flat list of ints (positive or negative).
+        """
+        lits = []
+        with open(file_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("c") or line.startswith("s"):
+                    continue
+                if line.startswith("v "):
+                    parts = line.split()[1:]
+                    for tok in parts:
+                        if tok == "0":
+                            break
+                        lits.append(int(tok))
+        return lits
 
     def save_model(self, file_path: str) -> None:
         """

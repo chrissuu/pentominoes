@@ -12,8 +12,8 @@ PUZZLE_NINE_INSTANCES = [
     # (8, 62,  (11, 12)), # proves n=62 is upper bound (n=63 is UNSAT) in 620 seconds, bounded area by +3
     # (9, 78,  (11, 13)), # timed out after 1 hr on 79
     # (10, 93, (12, 14)), # ~ 36 minutes to solve LB=93, LB=94 might be UNSAT
-    (11, 102,(12, 15)), # LB=103 in 205seconds
-    (12, 128,(18, 16)),
+    # (11, 103,(12, 15)), # LB=103 in 205seconds
+    (12, 129,(20, 20)),
 ]
 
 class TimeoutException(Exception):
@@ -58,8 +58,8 @@ def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print
 
 results = {}
 
-TIMEOUT = 60 * 60
-WIDTH_EXPANDER = 3
+TIMEOUT = 60 * 60 * 24 * 14
+WIDTH_EXPANDER = 0
 
 for n, LB, area in PUZZLE_NINE_INSTANCES:
     width, height = area
