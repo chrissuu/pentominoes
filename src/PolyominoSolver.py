@@ -1,13 +1,14 @@
 import functools
+import os
+import subprocess
+import tempfile
 import time
-import sys, time, threading, psutil
 from copy import deepcopy
 from itertools import product
 from typing import Dict, Sequence
 
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
-from pysat.solvers import Cadical195
 
 from polyomino import *
 
@@ -22,6 +23,7 @@ def log_diff(fn):
         return computation
 
     return wrapper
+
 
 def solve_in_subprocess(clauses):
     """
@@ -38,6 +40,7 @@ def solve_in_subprocess(clauses):
     model = solver.get_model() if result else None
     return result, model
 
+
 class PolyominoSolver:
     def __init__(
         self,
@@ -48,6 +51,7 @@ class PolyominoSolver:
         polyominoes: Sequence[Polyomino],
         break_global_symmetries: bool = True,
         break_polyomino_symmetries: bool = True,
+        use_sbva: bool = False,
         model_save_path=None,
     ):
         self.width = width
@@ -57,6 +61,7 @@ class PolyominoSolver:
         self.k = k
         self.model_save_path = model_save_path
 
+        self.use_sbva = use_sbva
         self.break_global_symmetries = break_global_symmetries
         if self.break_global_symmetries:
             # Symmetry breaking: fix one polyomino to a canonical rotation
@@ -467,11 +472,32 @@ class PolyominoSolver:
             sum(len(c) for c in self.cnf.clauses) / num_clauses if num_clauses else 0
         )
 
+        if self.use_sbva:
+            print("SIMPLIFYING CNF WITH SBVA...")
+            t2 = time.time()
+            self.simplify_cnf_with_sbva()
+            sbva_time = time.time() - t2
+            print(f"SBVA simplification completed in {sbva_time:.2f} seconds.")
+            print()
+
         print(f"CNF built in {build_time:.2f} seconds.")
         print(f"  Variables: {num_vars}")
         print(f"  Clauses:   {num_clauses}")
         print(f"  Avg clause length: {avg_clause_len:.2f}")
         print()
+
+    def simplify_cnf_with_sbva(self):
+        with tempfile.NamedTemporaryFile(mode="w") as temp_in:
+            with tempfile.NamedTemporaryFile(mode="r") as temp_out:
+                self.cnf.to_file(temp_in.name)
+                sbva_path = os.path.join(
+                    os.path.dirname(__file__), "..", "SBVA", "sbva"
+                )
+                subprocess.run(
+                    [sbva_path, "-i", temp_in.name, "-o", temp_out.name], check=True
+                )
+                simplified_cnf = CNF(from_file=temp_out.name)
+                self.cnf = simplified_cnf
 
     # END CONSTRAINTS DEFINITIONS
 
@@ -509,7 +535,6 @@ class PolyominoSolver:
             return True
 
         return False
-
 
     def _format_elapsed(self, seconds: float) -> str:
         if seconds < 60:
@@ -556,11 +581,9 @@ class PolyominoSolver:
         t.start()
         self._progress_thread = t
 
-
     def _stop_progress_timer(self):
         self._running_solve = False
         print("\r", end="", flush=True)
-
 
     def _is_true(self, var: int) -> bool:
         return self.model[var - 1] > 0
