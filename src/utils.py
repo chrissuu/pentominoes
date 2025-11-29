@@ -122,8 +122,11 @@ def validate(
     print("All CNF clauses satisfied.")
 
     print("Rebuilding constraints for structural validation...")
+    model_backup = list(solver.model) if solver.model is not None else None
     solver.reset_encoding_state()
     solver.build_constraints()
+    if model_backup is not None:
+        solver.model = model_backup
 
     try:
         solver.validate_model()
