@@ -1,54 +1,118 @@
 import signal
+from math import sqrt, ceil
 from PolyominoSolver import PolyominoSolver
 from Pentomino import ALL_PENTOMINOES
+from utils import *
+
 seconds = int
 
-class TimeoutException(Exception):
-    pass
+PUZZLE_NINE_INSTANCES = [
+    (3, 6),
+    (4, 12),
+    (5, 21),
+    (6, 34),
+    (7, 47),
+    (8, 62),
+    (9, 78),
+    (10, 93),
+    (11, 104),
+    (12, 128),
+]
 
-def timeout_handler(signum, frame):
-    raise TimeoutException
+TIMEOUT = 60 * 60
+results = {}
 
-def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print_board=True, save_path=None):
-    print(f"\n=== TEST CASE: {name} ===")
-    solver = PolyominoSolver(
-        width, 
-        height, 
-        inside_min,
-        k, 
-        polyominoes,
-        True,
-        False,
-        model_save_path=save_path)
+for n, LB in PUZZLE_NINE_INSTANCES:
+    print(f"Validating LB={LB} for n={n}...")
 
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(timeout)
+    # Compute bounding box
+    w_lb = w(n, 5, LB)
+    width, height = w_lb + 2, w_lb + 2
 
-    try:
-        sat = solver.solve()
-        signal.alarm(0)
+    model_path = f"models/{n}x{LB}x{width}x{height}.txt"
+    formula_path = f"formulas/{n}x{LB}x{width}x{height}.cnf"
 
-        if sat:
-            if print_board:
-                solver.print_board()
-            return True
-        else:
-            return False
+    sat = run(
+        name=f"Puzzle Nine {n}:{LB}",
+        k=n,
+        inside_min=LB,
+        width=width,
+        height=height,
+        polyominoes=ALL_PENTOMINOES,
+        break_global_symmetries=True,
+        break_polyomino_symmetries=True,
+        timeout=TIMEOUT,
+        print_board=True,
+        model_save_path=model_path,
+        formula_save_path=formula_path,
+    )
 
-    except TimeoutException:
-        print(f"Timed out after {timeout} seconds on test case {name}.")
-        return None
+    if sat is None:
+        results[n] = f"{LB} -> t"
+        continue
+    if not sat:
+        results[n] = f"{LB} -> UNSAT"
+        continue
 
-    finally:
-        signal.alarm(0)
-        print("=" * 40 + "\n")
+    validate(
+        k=n,
+        inside_min=LB,
+        width=width,
+        height=height,
+        polyominoes=ALL_PENTOMINOES,
+        break_global_symmetries=True,
+        break_polyomino_symmetries=True,
+        model_save_path=model_path,
+        formula_save_path=formula_path,
+    )
 
-run(name="20x20x128", 
-    width=20, 
-    height=20, 
-    inside_min=128, 
-    k=12, 
-    polyominoes=ALL_PENTOMINOES, 
-    timeout=60*60,
-    print_board=True,
-    save_path="models/12x128x20x20.txt")
+    curr = LB + 1
+    while True:
+        w_lb = w(n, 5, curr)
+        width, height = w_lb + 2, w_lb + 2
+
+        model_path = f"models/{n}x{curr}x{width}x{height}.txt"
+        formula_path = f"formulas/{n}x{curr}x{width}x{height}.cnf"
+
+        print(f"Testing n={n}, LB={curr}...")
+
+        sat = run(
+            name=f"Puzzle Nine {n}:{curr}",
+            k=n,
+            inside_min=curr,
+            width=width,
+            height=height,
+            polyominoes=ALL_PENTOMINOES,
+            break_global_symmetries=True,
+            break_polyomino_symmetries=True,
+            timeout=TIMEOUT,
+            print_board=False,
+            model_save_path=model_path,
+            formula_save_path=formula_path,
+        )
+
+        if sat is None:
+            results[n] = f"{LB} -> t" if curr == LB + 1 else f"{LB} -> {curr - 1} (t)"
+            break
+        if not sat:
+            results[n] = f"{LB} -> {curr}"
+            break
+
+        validate(
+            k=n,
+            inside_min=curr,
+            width=width,
+            height=height,
+            polyominoes=ALL_PENTOMINOES,
+            break_global_symmetries=True,
+            break_polyomino_symmetries=True,
+            model_save_path=model_path,
+            formula_save_path=formula_path,
+        )
+
+        curr += 1
+
+
+print("\n====== SUMMARY ======")
+for n, summary in results.items():
+    print(f"{n}: {summary}")

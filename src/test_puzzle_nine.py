@@ -4,6 +4,7 @@ from Pentomino import ALL_PENTOMINOES
 seconds = int
 
 PUZZLE_NINE_INSTANCES = [
+<<<<<<< HEAD
     # (3, 6,   (5, 5)),
     # (4, 12,  (7, 6)),
     # (5, 21,  (6, 8)),
@@ -14,6 +15,18 @@ PUZZLE_NINE_INSTANCES = [
     # (10, 93, (12, 14)), # ~ 36 minutes to solve LB=93, LB=94 might be UNSAT
     # (11, 103,(12, 15)), # LB=103 in 205seconds
     (12, 129,(20, 20)),
+=======
+    (3, 6,   (5, 5)),
+    (4, 12,  (7, 6)),
+    (5, 21,  (6, 8)),
+    (6, 34,  (9, 9)),
+    (7, 47,  (11, 9)),
+    (8, 62,  (11, 12)), # proves n=62 is upper bound (n=63 is UNSAT) in 620 seconds, bounded area by +3
+    (9, 78,  (11, 13)), # timed out after 1 hr on 79
+    (10, 93, (12, 14)), # ~ 36 minutes to solve LB=93, LB=94 might be UNSAT
+    (11, 104,(12, 15)), # LB=103 in 205seconds
+    (12, 128,(18, 16)),
+>>>>>>> f067704 (Clean up main script)
 ]
 
 class TimeoutException(Exception):
@@ -58,8 +71,13 @@ def run(name, width, height, inside_min, k, polyominoes, timeout: seconds, print
 
 results = {}
 
+<<<<<<< HEAD
 TIMEOUT = 60 * 60 * 24 * 14
 WIDTH_EXPANDER = 0
+=======
+TIMEOUT = 60 * 60
+WIDTH_EXPANDER = 4
+>>>>>>> f067704 (Clean up main script)
 
 for n, LB, area in PUZZLE_NINE_INSTANCES:
     width, height = area
