@@ -1,7 +1,6 @@
 import signal
 from math import sqrt, ceil
-from PolyominoSolver import PolyominoSolver
-from Pentomino import ALL_PENTOMINOES
+from .PolyominoSolver import PolyominoSolver
 
 seconds = int
 

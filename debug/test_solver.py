@@ -1,7 +1,5 @@
-from PolyominoSolver import PolyominoSolver
+from pentominoes import PolyominoSolver, ALL_PENTOMINOES
 
-from Pentomino import *
-from Tetromino import *
 """
 Note on notation:
 

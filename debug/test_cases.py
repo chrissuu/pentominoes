@@ -4,10 +4,7 @@ PolyominoSolver Test Suite
 Tests the maximal tetromino area enclosing problem
 on different board sizes and tile configurations.
 """
-
-from Tetromino import *
-from Pentomino import *
-from PolyominoSolver import PolyominoSolver
+from pentominoes import PolyominoSolver, ALL_TETROMINOES, ALL_PENTOMINOES
 
 def run_test_case(name, width, height, inside_min, polyominoes, expected):
     print(f"\n=== TEST CASE: {name} ===")
@@ -154,5 +151,3 @@ T14 = lambda _ : run_test_case(
     polyominoes=ALL_PENTOMINOES,
     expected=True
 )
-
-# T13(1)

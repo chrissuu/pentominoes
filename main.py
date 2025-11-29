@@ -1,26 +1,40 @@
-import signal
-from math import sqrt, ceil
-from PolyominoSolver import PolyominoSolver
-from Pentomino import ALL_PENTOMINOES
-from utils import *
+from pentominoes import ALL_PENTOMINOES, run, validate, w
 
 seconds = int
 
+"""
+NEW LOWER BOUNDS
+"""
+# PUZZLE_NINE_INSTANCES = [
+#     (3, 6),
+#     (4, 12),
+#     (5, 21),
+#     (6, 34),
+#     (7, 47),
+#     (8, 62),
+#     (9, 78),
+#     (10, 93),
+#     (11, 104),
+#     (12, 128),
+# ]
+
+"""
+ORIGINAL LOWER BOUNDS
+"""
 PUZZLE_NINE_INSTANCES = [
     (3, 6),
     (4, 12),
-    # (5, 21),
-    # (6, 34),
-    # (7, 47),
-    # (8, 62),
-    # (9, 78),
-    # (10, 93),
-    # (11, 104),
-    # (12, 128),
+    (5, 21),
+    (6, 32),
+    (7, 43),
+    (8, 61),
+    (9, 70),
+    (10, 84),
+    (11, 102),
+    (12, 128),
 ]
 
 TIMEOUT = 60 * 60
-
 
 def main() -> None:
     results = {}
@@ -32,7 +46,7 @@ def main() -> None:
             "best": None,
             "ub": None,
             "timeout_at": None,
-            "status": "pending",
+            "status": "unknown",
         }
 
         w_lb = w(n, 5, LB)

@@ -1,6 +1,6 @@
 import signal
-from PolyominoSolver import PolyominoSolver
-from Pentomino import ALL_PENTOMINOES
+from pentominoes import PolyominoSolver
+from pentominoes import ALL_PENTOMINOES
 seconds = int
 
 PUZZLE_NINE_INSTANCES = [
