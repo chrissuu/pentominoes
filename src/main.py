@@ -8,7 +8,7 @@ seconds = int
 
 PUZZLE_NINE_INSTANCES = [
     (3, 6),
-    # (4, 12),
+    (4, 12),
     # (5, 21),
     # (6, 34),
     # (7, 47),
@@ -27,6 +27,13 @@ def main() -> None:
 
     for n, LB in PUZZLE_NINE_INSTANCES:
         print(f"Validating LB={LB} for n={n}...")
+        record = {
+            "initial": LB,
+            "best": None,
+            "ub": None,
+            "timeout_at": None,
+            "status": "pending",
+        }
 
         w_lb = w(n, 5, LB)
         width, height = w_lb + 2, w_lb + 2
@@ -50,24 +57,29 @@ def main() -> None:
         )
 
         if sat is None:
-            results[n] = f"{LB} -> t"
+            record["status"] = "timeout_initial"
+            results[n] = record
             continue
         if not sat:
-            results[n] = f"{LB} -> UNSAT"
+            record["status"] = "initial_unsat"
+            record["ub"] = LB
+            results[n] = record
             continue
 
-        if sat:
-            validate(
-                k=n,
-                inside_min=LB,
-                width=width,
-                height=height,
-                polyominoes=ALL_PENTOMINOES,
-                break_global_symmetries=True,
-                break_polyomino_symmetries=True,
-                model_save_path=model_path,
-                formula_save_path=formula_path,
-            )
+        record["best"] = LB
+        record["status"] = "searching"
+
+        validate(
+            k=n,
+            inside_min=LB,
+            width=width,
+            height=height,
+            polyominoes=ALL_PENTOMINOES,
+            break_global_symmetries=True,
+            break_polyomino_symmetries=True,
+            model_save_path=model_path,
+            formula_save_path=formula_path,
+        )
 
         curr = LB + 1
         while True:
@@ -89,36 +101,97 @@ def main() -> None:
                 break_global_symmetries=True,
                 break_polyomino_symmetries=True,
                 timeout=TIMEOUT,
-                print_board=False,
+                print_board=True,
                 model_save_path=model_path,
                 formula_save_path=formula_path,
             )
 
             if sat is None:
-                results[n] = f"{LB} -> t" if curr == LB + 1 else f"{LB} -> {curr - 1} (t)"
+                record["status"] = "timeout"
+                record["timeout_at"] = curr
+                results[n] = record
                 break
             if not sat:
-                results[n] = f"{LB} -> Upper Bound"
+                record["status"] = "ub_proven"
+                record["ub"] = curr
+                results[n] = record
                 break
 
-            if sat:
-                validate(
-                    k=n,
-                    inside_min=curr,
-                    width=width,
-                    height=height,
-                    polyominoes=ALL_PENTOMINOES,
-                    break_global_symmetries=True,
-                    break_polyomino_symmetries=True,
-                    model_save_path=model_path,
-                    formula_save_path=formula_path,
-                )
+            record["best"] = curr
+
+            validate(
+                k=n,
+                inside_min=curr,
+                width=width,
+                height=height,
+                polyominoes=ALL_PENTOMINOES,
+                break_global_symmetries=True,
+                break_polyomino_symmetries=True,
+                model_save_path=model_path,
+                formula_save_path=formula_path,
+            )
 
             curr += 1
 
     print("\n====== SUMMARY ======")
-    for n, summary in results.items():
-        print(f"{n}: {summary}")
+    if results:
+        def format_lb_progress(record):
+            initial = record["initial"]
+            best = record["best"]
+            status = record["status"]
+            if best is None:
+                if status == "initial_unsat":
+                    return f"{initial} (UNSAT)"
+                return f"{initial} (unproved)"
+            if best == initial:
+                return f"{initial}"
+            return f"{initial} -> {best}"
+
+        def format_ub_status(record):
+            if record["ub"] is not None:
+                if record["status"] == "initial_unsat":
+                    return f"proved at {record['ub']} (initial UNSAT)"
+                return f"proved at {record['ub']}"
+            status = record["status"]
+            if status == "timeout":
+                return f"pending (timeout at {record['timeout_at']})"
+            if status == "timeout_initial":
+                return "pending (timeout before SAT)"
+            return "pending"
+
+        rows = []
+        for n in sorted(results):
+            record = results[n]
+            rows.append(
+                (
+                    str(n),
+                    format_lb_progress(record),
+                    format_ub_status(record),
+                )
+            )
+
+        n_width = max(len(row[0]) for row in rows)
+        lb_width = max(len("LB progression"), max(len(row[1]) for row in rows))
+        ub_width = max(len("Upper bound"), max(len(row[2]) for row in rows))
+
+        header = (
+            f"{'n'.rjust(n_width)} | "
+            f"{'LB progression'.ljust(lb_width)} | "
+            f"{'Upper bound'.ljust(ub_width)}"
+        )
+        divider = (
+            f"{'-' * n_width}-+-{'-' * lb_width}-+-{'-' * ub_width}"
+        )
+        print(header)
+        print(divider)
+        for row in rows:
+            print(
+                f"{row[0].rjust(n_width)} | "
+                f"{row[1].ljust(lb_width)} | "
+                f"{row[2].ljust(ub_width)}"
+            )
+    else:
+        print("No results recorded.")
 
 
 if __name__ == "__main__":

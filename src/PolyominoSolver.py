@@ -18,10 +18,14 @@ def log_diff(fn):
         prev = len(self.cnf.clauses)
         computation = fn(self, *args, **kwargs)
         after = len(self.cnf.clauses)
-        print(f"Constraint {fn.__name__} added {after - prev} clauses.")
+        delta = after - prev
+        print(f"Constraint {fn.__name__:<45} | +{delta:5d} clauses")
         return computation
 
     return wrapper
+
+def capture_to_log(fn):
+    pass
 
 def solve_in_subprocess(clauses):
     """
@@ -49,7 +53,8 @@ class PolyominoSolver:
         break_global_symmetries: bool = True,
         break_polyomino_symmetries: bool = True,
         model_save_path=None,
-        formula_save_path=None
+        formula_save_path=None,
+        logs_save_path=None
     ):
         self.k = k
         self.inside_tiles_minimum = inside_tiles_minimum
@@ -58,6 +63,7 @@ class PolyominoSolver:
         self.polyominoes = deepcopy(polyominoes)
         self.model_save_path = model_save_path
         self.formula_save_path = formula_save_path
+        self.logs_save_path = logs_save_path
 
         self.break_global_symmetries = break_global_symmetries
         if self.break_global_symmetries:
@@ -87,6 +93,8 @@ class PolyominoSolver:
         self.cnf = CNF()
         self.model = None
         self.cell_to_placements = {}
+        self._progress_thread = None
+        self._last_progress_len = 0
 
     def reset_encoding_state(self) -> None:
         """
@@ -100,6 +108,8 @@ class PolyominoSolver:
         self.cnf = CNF()
         self.model = None
         self.cell_to_placements = {}
+        self._progress_thread = None
+        self._last_progress_len = 0
 
     def get_p_var(self, x: int, y: int, r: int, m: int, i: int) -> int:
         """
@@ -546,6 +556,7 @@ class PolyominoSolver:
 
         self._running_solve = True
         start = time.time()
+        self._last_progress_len = 0
 
         child = psutil.Process(self._solver_pid)
 
@@ -562,6 +573,7 @@ class PolyominoSolver:
                         f"| CPU {cpu:5.1f}% "
                         f"| RAM {mem:7.1f} MB"
                     )
+                    self._last_progress_len = len(msg)
 
                     sys.stdout.write("\r" + msg + " " * 10)
                     sys.stdout.flush()
@@ -577,7 +589,14 @@ class PolyominoSolver:
 
     def _stop_progress_timer(self):
         self._running_solve = False
-        print("\r", end="", flush=True)
+        if self._progress_thread:
+            self._progress_thread.join()
+            self._progress_thread = None
+
+        if self._last_progress_len:
+            sys.stdout.write("\r" + " " * (self._last_progress_len + 10) + "\r")
+            sys.stdout.flush()
+            self._last_progress_len = 0
 
     def _dense_model(self, raw_model: Sequence[int]) -> List[int]:
         """Convert solver output literals into a dense, indexable assignment list."""
