@@ -126,6 +126,8 @@ class RunLogger:
     def _log_line(self, line: str) -> None:
         if not self._log_file:
             return
+        if not line.strip():
+            return
         if "[elapsed]" in line:
             self._elapsed_counter += 1
             if self.elapsed_log_every is None:
@@ -178,7 +180,7 @@ def run(
     model_save_path=None,
     formula_save_path=None,
     log_dir: Optional[str] = "logs",
-    log_elapsed_every: Optional[int] = 10,
+    log_elapsed_every: Optional[int] = None,
 ):
     polyominoes = list(polyominoes)
     log_dir = _resolve_log_dir(log_dir)
