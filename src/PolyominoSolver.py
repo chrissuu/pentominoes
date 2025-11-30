@@ -9,7 +9,7 @@ from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
 from pysat.solvers import Cadical195
 
-from .polyomino import *
+from polyomino import *
 
 
 def log_diff(fn):

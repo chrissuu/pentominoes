@@ -1,5 +1,5 @@
-from pentominoes import ALL_PENTOMINOES, run, validate, w
-
+from utils import run, validate, w
+from Pentomino import ALL_PENTOMINOES
 seconds = int
 
 """
@@ -27,11 +27,11 @@ PUZZLE_NINE_INSTANCES = [
     (5, 21),
     (6, 32),
     (7, 43),
-    (8, 61),
-    (9, 70),
-    (10, 84),
-    (11, 102),
-    (12, 128),
+    # (8, 61),
+    # (9, 70),
+    # (10, 84),
+    # (11, 102),
+    # (12, 128),
 ]
 
 TIMEOUT = 60 * 60
