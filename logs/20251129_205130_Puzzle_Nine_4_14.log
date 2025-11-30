@@ -1,0 +1,55 @@
+Run 'Puzzle Nine 4:14' started at 2025-11-29T20:51:30.238374
+Parameters:
+  - k: 4
+  - inside_min: 14
+  - width: 10
+  - height: 10
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/4x14x10x10.txt
+  - formula_save_path: formulas/4x14x10x10.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 4:14 ===
+BEGIN BUILDING MAP
+Built map in 0.09 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | + 8316 clauses
+Constraint add_total_tiles_constraint                    | + 6400 clauses
+Constraint add_inside_tiles_constraint                   | + 2336 clauses
+Constraint add_tile_partition_constraints                | +  400 clauses
+Constraint add_link_fence_to_placements_constraint       | +10380 clauses
+Constraint add_outside_adjacency_constraints             | +  684 clauses
+Constraint add_outside_border_constraints                | +   40 clauses
+Constraint add_fence_touch_inside_constraint             | + 1442 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.11 seconds.
+  Variables: 9600
+  Clauses:   30000
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+                                                      
+
+Solving finished in 0.8s.
+SAT result: UNSATISFIABLE
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:51:31.436736

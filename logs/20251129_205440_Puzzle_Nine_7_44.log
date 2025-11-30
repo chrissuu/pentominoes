@@ -1,0 +1,263 @@
+Run 'Puzzle Nine 7:44' started at 2025-11-29T20:54:40.550057
+Parameters:
+  - k: 7
+  - inside_min: 44
+  - width: 16
+  - height: 16
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/7x44x16x16.txt
+  - formula_save_path: formulas/7x44x16x16.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 7:44 ===
+BEGIN BUILDING MAP
+Built map in 0.22 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +32808 clauses
+Constraint add_total_tiles_constraint                    | +30940 clauses
+Constraint add_inside_tiles_constraint                   | +18488 clauses
+Constraint add_tile_partition_constraints                | + 1024 clauses
+Constraint add_link_fence_to_placements_constraint       | +41136 clauses
+Constraint add_outside_adjacency_constraints             | + 1860 clauses
+Constraint add_outside_border_constraints                | +   64 clauses
+Constraint add_fence_touch_inside_constraint             | + 3842 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.34 seconds.
+  Variables: 43908
+  Clauses:   130164
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 0.9s | CPU 100.8% | RAM   101.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU 100.3% | RAM    89.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 3.0s | CPU  99.4% | RAM    90.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 4.1s | CPU 108.7% | RAM   134.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 5.1s | CPU  99.8% | RAM   104.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 6.2s | CPU 100.0% | RAM   116.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 7.2s | CPU 106.3% | RAM   129.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 8.3s | CPU  99.1% | RAM   126.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 9.3s | CPU  96.6% | RAM   111.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 10.4s | CPU  92.2% | RAM   107.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 11.4s | CPU  99.9% | RAM   123.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 12.5s | CPU  97.5% | RAM   118.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 13.5s | CPU 108.5% | RAM   114.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 14.6s | CPU  90.9% | RAM    95.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 15.6s | CPU 108.1% | RAM    96.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 16.7s | CPU 108.1% | RAM    95.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 17.7s | CPU  95.2% | RAM   105.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 18.8s | CPU 102.6% | RAM    94.3 MB          
+
+
+                                                       
+
+Solving finished in 18.9s.
+SAT result: SATISFIABLE
+******************
+*----------------*
+*----------------*
+*----------------*
+*----------------*
+*-VVVWW----------*
+*-V+++WW---------*
+*-V++++WTTT------*
+*-I++++++T-------*
+*-I++++++T-------*
+*-I++++++L-------*
+*-I++++++L-------*
+*-I++++++L-------*
+*-ZZ++++LL-------*
+*--Z+++NN--------*
+*--ZZNNN---------*
+*----------------*
+******************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:55:00.273800

@@ -1,0 +1,117 @@
+Run 'Puzzle Nine 6:32' started at 2025-11-29T20:51:48.435859
+Parameters:
+  - k: 6
+  - inside_min: 32
+  - width: 14
+  - height: 14
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/6x32x14x14.txt
+  - formula_save_path: formulas/6x32x14x14.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 6:32 ===
+BEGIN BUILDING MAP
+Built map in 0.16 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +22860 clauses
+Constraint add_total_tiles_constraint                    | +19920 clauses
+Constraint add_inside_tiles_constraint                   | +10364 clauses
+Constraint add_tile_partition_constraints                | +  784 clauses
+Constraint add_link_fence_to_placements_constraint       | +28636 clauses
+Constraint add_outside_adjacency_constraints             | + 1404 clauses
+Constraint add_outside_border_constraints                | +   56 clauses
+Constraint add_fence_touch_inside_constraint             | + 2914 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.25 seconds.
+  Variables: 28700
+  Clauses:   86940
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1.0s | CPU  99.9% | RAM    66.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU  99.9% | RAM    88.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 3.0s | CPU 100.0% | RAM    82.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 4.1s | CPU 102.0% | RAM    52.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 5.1s | CPU 100.2% | RAM    59.9 MB          
+
+                                                      
+
+Solving finished in 5.2s.
+SAT result: SATISFIABLE
+****************
+*--------------*
+*--------------*
+*------T-------*
+*-VVVTTT-------*
+*-V++++T-------*
+*-V++++LL------*
+*-I+++++L------*
+*-I+++++L------*
+*-I+++++L------*
+*-I+++++W------*
+*-I++++WW------*
+*-YYYYWW-------*
+*--Y-----------*
+*--------------*
+****************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:51:54.237265
