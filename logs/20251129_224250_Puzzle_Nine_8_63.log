@@ -1,7 +1,7 @@
-Run 'Puzzle Nine 8:61' started at 2025-11-29T22:40:14.346068
+Run 'Puzzle Nine 8:63' started at 2025-11-29T22:42:50.734204
 Parameters:
   - k: 8
-  - inside_min: 61
+  - inside_min: 63
   - width: 18
   - height: 18
   - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
@@ -9,33 +9,26 @@ Parameters:
   - break_polyomino_symmetries: True
   - timeout_seconds: 3600
   - print_board: True
-  - model_save_path: models/8x61x18x18.txt
-  - formula_save_path: formulas/8x61x18x18.cnf
+  - model_save_path: models/8x63x18x18.txt
+  - formula_save_path: formulas/8x63x18x18.cnf
   - log_dir: logs
-  - log_elapsed_every: 10
+  - log_elapsed_every: disabled
 ------------------------------------------------------------
-=== TEST CASE: Puzzle Nine 8:61 ===
+=== TEST CASE: Puzzle Nine 8:63 ===
 BEGIN BUILDING MAP
 Built map in 0.16 seconds
 BEGIN CONSTRAINT BUILDING
 Constraint add_polyomino_selection_constraint            | +44540 clauses
 Constraint add_total_tiles_constraint                    | +45440 clauses
-Constraint add_inside_tiles_constraint                   | +31884 clauses
+Constraint add_inside_tiles_constraint                   | +32688 clauses
 Constraint add_tile_partition_constraints                | + 1296 clauses
 Constraint add_link_fence_to_placements_constraint       | +55884 clauses
 Constraint add_outside_adjacency_constraints             | + 2380 clauses
 Constraint add_outside_border_constraints                | +   72 clauses
 Constraint add_fence_touch_inside_constraint             | + 4898 clauses
 Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
-CNF built in 0.33 seconds.
-  Variables: 64471
-  Clauses:   186396
+CNF built in 0.27 seconds.
+  Variables: 64871
+  Clauses:   187200
   Avg clause length: 2.58
 BEGIN SOLVING
-[elapsed] 1.0s | CPU 100.5% | RAM   107.4 MB          
-[elapsed] 2.0s | CPU  99.3% | RAM   114.2 MB          
-[elapsed] 3.1s | CPU  98.8% | RAM   141.6 MB          
-[elapsed] 4.1s | CPU  92.5% | RAM    99.1 MB          
-[elapsed] 5.1s | CPU  99.9% | RAM    84.4 MB          
-
-[run logger] Completed at 2025-11-29T22:40:20.176165
