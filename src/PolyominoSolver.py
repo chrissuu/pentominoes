@@ -11,6 +11,8 @@ from typing import Dict, Sequence
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
 
+from upper_bounds import calc_inside_tiles_upper_bound
+
 from polyomino import *
 
 
@@ -72,6 +74,13 @@ class PolyominoSolver:
         self.logs_save_path = logs_save_path
         self.use_sbva = use_sbva
 
+        if self.k is not None:
+            self.total_tiles = len(self.polyominoes[0].default_tiles) * self.k
+        else:
+            self.total_tiles = len(self.polyominoes[0].default_tiles) * len(
+                self.polyominoes
+            )
+
         self.break_global_symmetries = break_global_symmetries
         if self.break_global_symmetries:
             # Symmetry breaking: fix one polyomino to a canonical rotation
@@ -94,7 +103,6 @@ class PolyominoSolver:
 
         self.vpool = IDPool()
         self.p_vars = set()
-        self.cell_to_placements = None
         self.use_vars = {}
 
         self.cnf = CNF()
@@ -176,9 +184,23 @@ class PolyominoSolver:
         Checks if all tiles fall within the valid area of the board.
         Border cells should not be occupied by polyominoes.
         """
-        return all(
+        # First check if all tiles are in bounds
+        if not all(
             1 <= tx < self.width - 1 and 1 <= ty < self.height - 1 for tx, ty in tiles
+        ):
+            return False
+
+        # Now check if placing tile here allows us to achieve the desired inside_tiles_minimum
+        upper_bound_inside_tiles = min(
+            calc_inside_tiles_upper_bound(
+                self.height - 2,
+                self.width - 2,
+                self.total_tiles,
+                (fixed_tile[0] - 1, fixed_tile[1] - 1),
+            )
+            for fixed_tile in tiles
         )
+        return upper_bound_inside_tiles >= self.inside_tiles_minimum
 
     def neighbors4(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
@@ -324,15 +346,9 @@ class PolyominoSolver:
         tf_literals = [
             self.get_tf_var(x, y) for x in range(self.width) for y in range(self.height)
         ]
-
-        if self.k is not None:
-            total_tiles = len(self.polyominoes[0].default_tiles) * self.k
-        else:
-            total_tiles = len(self.polyominoes[0].default_tiles) * len(self.polyominoes)
-
         enc_eq = CardEnc.equals(
             lits=tf_literals,
-            bound=total_tiles,
+            bound=self.total_tiles,
             encoding=EncType.seqcounter,
             vpool=self.vpool,
         )

@@ -29,10 +29,10 @@ def test_solver_cases(
     is_satisfiable,
 ):
     solver = PolyominoSolver(
+        k,
+        inside_tiles_minimum,
         width,
         height,
-        inside_tiles_minimum,
-        k,
         polyominoes,
         break_global_symmetries=True,
         break_polyomino_symmetries=True,
@@ -65,10 +65,10 @@ OOOOOOOOOOOOOOOOOOOO""".splitlines()
 
 def test_forced_soln_is_satisfiable():
     solver = PolyominoSolver(
-        20,
-        20,
-        128,
         None,
+        128,
+        20,
+        20,
         ALL_PENTOMINOES,
         break_global_symmetries=True,
         break_polyomino_symmetries=True,
