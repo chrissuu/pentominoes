@@ -1,13 +1,15 @@
 import functools
+import os
+import subprocess
+import sys
+import tempfile
 import time
-import sys, time, threading, psutil
 from copy import deepcopy
 from itertools import product
-from typing import Dict, Sequence, List, Tuple
+from typing import Dict, Sequence
 
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNF, IDPool
-from pysat.solvers import Cadical195
 
 from polyomino import *
 
@@ -24,8 +26,10 @@ def log_diff(fn):
 
     return wrapper
 
+
 def capture_to_log(fn):
     pass
+
 
 def solve_in_subprocess(clauses):
     """
@@ -42,6 +46,7 @@ def solve_in_subprocess(clauses):
     model = solver.get_model() if result else None
     return result, model
 
+
 class PolyominoSolver:
     def __init__(
         self,
@@ -52,9 +57,10 @@ class PolyominoSolver:
         polyominoes: Sequence[Polyomino],
         break_global_symmetries: bool = True,
         break_polyomino_symmetries: bool = True,
+        use_sbva: bool = False,
         model_save_path=None,
         formula_save_path=None,
-        logs_save_path=None
+        logs_save_path=None,
     ):
         self.k = k
         self.inside_tiles_minimum = inside_tiles_minimum
@@ -64,6 +70,7 @@ class PolyominoSolver:
         self.model_save_path = model_save_path
         self.formula_save_path = formula_save_path
         self.logs_save_path = logs_save_path
+        self.use_sbva = use_sbva
 
         self.break_global_symmetries = break_global_symmetries
         if self.break_global_symmetries:
@@ -102,7 +109,6 @@ class PolyominoSolver:
         """
         self.vpool = IDPool()
         self.p_vars = set()
-        self.cell_to_placements = None
         self.use_vars = {}
 
         self.cnf = CNF()
@@ -487,6 +493,14 @@ class PolyominoSolver:
 
         build_time = time.time() - t1
 
+        if self.use_sbva:
+            print("SIMPLIFYING CNF WITH SBVA...")
+            t2 = time.time()
+            self.simplify_cnf_with_sbva()
+            sbva_time = time.time() - t2
+            print(f"SBVA simplification completed in {sbva_time:.2f} seconds.")
+            print()
+
         num_clauses = len(self.cnf.clauses)
         num_vars = self.vpool.top
         avg_clause_len = (
@@ -498,6 +512,19 @@ class PolyominoSolver:
         print(f"  Clauses:   {num_clauses}")
         print(f"  Avg clause length: {avg_clause_len:.2f}")
         print()
+
+    def simplify_cnf_with_sbva(self):
+        with tempfile.NamedTemporaryFile(mode="w") as temp_in:
+            with tempfile.NamedTemporaryFile(mode="r") as temp_out:
+                self.cnf.to_file(temp_in.name)
+                sbva_path = os.path.join(
+                    os.path.dirname(__file__), "..", "SBVA", "sbva"
+                )
+                subprocess.run(
+                    [sbva_path, "-i", temp_in.name, "-o", temp_out.name], check=True
+                )
+                simplified_cnf = CNF(from_file=temp_out.name)
+                self.cnf = simplified_cnf
 
     # END CONSTRAINTS DEFINITIONS
 
@@ -626,14 +653,16 @@ class PolyominoSolver:
                 placements.append(p_var)
         return placements
 
-# BEGIN PICKLE UTILS
+    # BEGIN PICKLE UTILS
 
     def save_formula(self, file_path: str = None) -> None:
         if file_path:
             self.cnf.to_file(file_path)
         else:
             if self.model_save_path:
-                print(f"No model_save_path given. Using default save path {self.model_save_path}")
+                print(
+                    f"No model_save_path given. Using default save path {self.model_save_path}"
+                )
                 self.cnf.to_file(self.model_save_path)
             else:
                 print(f"No model_save_path available. Save failed!")
@@ -643,11 +672,12 @@ class PolyominoSolver:
             self.cnf = CNF(from_file=file_path)
         else:
             if self.model_save_path:
-                print(f"No model_save_path given. Using default save path {self.model_save_path}")
+                print(
+                    f"No model_save_path given. Using default save path {self.model_save_path}"
+                )
                 self.cnf = CNF(from_file=file_path)
             else:
                 print(f"No model_save_path available. Load failed!")
-
 
     def save_model(self, file_path: str) -> None:
         """
@@ -667,7 +697,7 @@ class PolyominoSolver:
 
             chunk_size = 20
             for i in range(0, len(self.model), chunk_size):
-                chunk = self.model[i:i + chunk_size]
+                chunk = self.model[i : i + chunk_size]
                 f.write("v " + " ".join(str(lit) for lit in chunk) + " 0\n")
 
     def load_model(self, file_path: str) -> List[int]:
@@ -691,10 +721,10 @@ class PolyominoSolver:
 
         self.model = self._dense_model(loaded_model)
         return self.model
-    
-# END PICKLE UTILS
 
-# BEGIN VALIDATION UTILS
+    # END PICKLE UTILS
+
+    # BEGIN VALIDATION UTILS
 
     def validate_model(self) -> None:
         """
@@ -711,9 +741,9 @@ class PolyominoSolver:
             if self._is_true(self.get_p_var(x, y, r, m, i)):
                 used_polys.add(i)
 
-        assert len(used_polys) == self.k, (
-            f"Expected {self.k} unique polyominoes, but got {len(used_polys)}."
-        )
+        assert (
+            len(used_polys) == self.k
+        ), f"Expected {self.k} unique polyominoes, but got {len(used_polys)}."
 
         fence_tiles = set()
         for x in range(self.width):
@@ -724,7 +754,7 @@ class PolyominoSolver:
         assert fence_tiles, "No fence tiles in model."
 
         def nbrs4(x, y):
-            for nx, ny in [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]:
+            for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
                 if (nx, ny) in fence_tiles:
                     yield (nx, ny)
 
@@ -752,9 +782,9 @@ class PolyominoSolver:
                 if self._is_true(self.get_ti_var(x, y)):
                     inside_count += 1
 
-        assert inside_count == self.inside_tiles_minimum, (
-            f"Expected {self.inside_tiles_minimum} inside cells, but found {inside_count}."
-        )
+        assert (
+            inside_count == self.inside_tiles_minimum
+        ), f"Expected {self.inside_tiles_minimum} inside cells, but found {inside_count}."
 
         print("Model validation successful.")
 
