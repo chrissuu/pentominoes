@@ -1,0 +1,387 @@
+Run 'Puzzle Nine 6:34' started at 2025-11-29T20:52:00.045960
+Parameters:
+  - k: 6
+  - inside_min: 34
+  - width: 14
+  - height: 14
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/6x34x14x14.txt
+  - formula_save_path: formulas/6x34x14x14.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 6:34 ===
+BEGIN BUILDING MAP
+Built map in 0.17 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +22860 clauses
+Constraint add_total_tiles_constraint                    | +19920 clauses
+Constraint add_inside_tiles_constraint                   | +10888 clauses
+Constraint add_tile_partition_constraints                | +  784 clauses
+Constraint add_link_fence_to_placements_constraint       | +28636 clauses
+Constraint add_outside_adjacency_constraints             | + 1404 clauses
+Constraint add_outside_border_constraints                | +   56 clauses
+Constraint add_fence_touch_inside_constraint             | + 2914 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.24 seconds.
+  Variables: 28960
+  Clauses:   87464
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 0.9s | CPU  99.8% | RAM    66.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU  99.9% | RAM    99.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 3.0s | CPU  99.4% | RAM    88.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 4.1s | CPU 101.9% | RAM    90.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 5.1s | CPU  98.2% | RAM    69.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 6.2s | CPU  96.2% | RAM    66.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 7.2s | CPU  97.6% | RAM    58.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 8.2s | CPU  99.8% | RAM    61.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 9.3s | CPU  96.3% | RAM    68.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 10.3s | CPU  97.4% | RAM    72.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 11.4s | CPU  98.8% | RAM    58.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 12.4s | CPU  98.4% | RAM    48.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 13.5s | CPU  98.7% | RAM    56.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 14.5s | CPU  99.7% | RAM    61.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 15.5s | CPU  92.2% | RAM    43.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 16.6s | CPU  96.9% | RAM    29.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 17.6s | CPU  99.9% | RAM    35.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 18.7s | CPU  99.6% | RAM    49.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 19.7s | CPU  99.5% | RAM    62.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 20.8s | CPU  97.8% | RAM    58.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 21.8s | CPU  96.4% | RAM    53.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 22.8s | CPU 107.3% | RAM    46.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 23.9s | CPU  97.9% | RAM    51.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 24.9s | CPU 100.8% | RAM    54.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 26.0s | CPU  99.8% | RAM    59.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 27.0s | CPU  98.2% | RAM    66.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 28.1s | CPU  97.0% | RAM    64.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 29.1s | CPU  98.1% | RAM    55.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 30.1s | CPU  77.7% | RAM    56.2 MB          
+
+
+
+
+
+
+
+                                                       
+
+Solving finished in 30.9s.
+SAT result: SATISFIABLE
+****************
+*--------------*
+*--------------*
+*--------------*
+*--------------*
+*-LLLLWW-------*
+*-L++++WW------*
+*-I+++++W------*
+*-I+++++UU-----*
+*-I++++++U-----*
+*-I+++++UU-----*
+*-I+++++V------*
+*-NN++++V------*
+*--NNNVVV------*
+*--------------*
+****************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:52:31.477551

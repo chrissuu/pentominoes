@@ -1,0 +1,96 @@
+Run 'Puzzle Nine 5:24' started at 2025-11-29T20:51:41.525911
+Parameters:
+  - k: 5
+  - inside_min: 24
+  - width: 12
+  - height: 12
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/5x24x12x12.txt
+  - formula_save_path: formulas/5x24x12x12.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 5:24 ===
+BEGIN BUILDING MAP
+Built map in 0.12 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +14696 clauses
+Constraint add_total_tiles_constraint                    | +11900 clauses
+Constraint add_inside_tiles_constraint                   | + 5664 clauses
+Constraint add_tile_partition_constraints                | +  576 clauses
+Constraint add_link_fence_to_placements_constraint       | +18384 clauses
+Constraint add_outside_adjacency_constraints             | + 1012 clauses
+Constraint add_outside_border_constraints                | +   48 clauses
+Constraint add_fence_touch_inside_constraint             | + 2114 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.17 seconds.
+  Variables: 17684
+  Clauses:   54396
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 0.9s | CPU  99.5% | RAM    65.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU  97.4% | RAM    62.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 3.0s | CPU  97.7% | RAM    66.8 MB          
+
+
+
+
+                                                      
+
+Solving finished in 3.4s.
+SAT result: SATISFIABLE
+**************
+*------------*
+*------------*
+*------------*
+*----Y-------*
+*-IYYYYN-----*
+*-I++++NN----*
+*-I+++++N----*
+*-I+++++N----*
+*-I+++++V----*
+*-L+++++V----*
+*-LLLLVVV----*
+*------------*
+**************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:51:45.361662

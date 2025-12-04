@@ -1,0 +1,738 @@
+Run 'Puzzle Nine 7:43' started at 2025-11-29T20:53:34.620462
+Parameters:
+  - k: 7
+  - inside_min: 43
+  - width: 16
+  - height: 16
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/7x43x16x16.txt
+  - formula_save_path: formulas/7x43x16x16.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 7:43 ===
+BEGIN BUILDING MAP
+Built map in 0.21 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +32808 clauses
+Constraint add_total_tiles_constraint                    | +30940 clauses
+Constraint add_inside_tiles_constraint                   | +18148 clauses
+Constraint add_tile_partition_constraints                | + 1024 clauses
+Constraint add_link_fence_to_placements_constraint       | +41136 clauses
+Constraint add_outside_adjacency_constraints             | + 1860 clauses
+Constraint add_outside_border_constraints                | +   64 clauses
+Constraint add_fence_touch_inside_constraint             | + 3842 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.34 seconds.
+  Variables: 43739
+  Clauses:   129824
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1.0s | CPU 100.4% | RAM   102.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU 108.0% | RAM   131.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 3.1s | CPU 108.1% | RAM   133.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 4.1s | CPU 100.4% | RAM   129.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 5.2s | CPU  91.8% | RAM   125.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 6.2s | CPU 100.0% | RAM   131.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 7.3s | CPU  98.0% | RAM   108.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 8.3s | CPU  66.2% | RAM    52.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 9.4s | CPU  92.8% | RAM    48.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 10.5s | CPU  98.9% | RAM    35.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 11.5s | CPU  92.5% | RAM    46.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 12.6s | CPU  72.7% | RAM    38.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 13.6s | CPU 103.2% | RAM    40.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 14.7s | CPU  99.9% | RAM    44.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 15.7s | CPU  94.0% | RAM    54.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 16.8s | CPU 104.1% | RAM    62.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 17.8s | CPU  99.1% | RAM    50.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 18.9s | CPU  98.6% | RAM    35.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 19.9s | CPU  99.7% | RAM    49.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 21.0s | CPU 101.8% | RAM    50.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 22.0s | CPU 105.4% | RAM    54.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 23.1s | CPU 104.5% | RAM    40.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 24.1s | CPU 100.2% | RAM    46.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 25.1s | CPU  99.0% | RAM    41.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 26.2s | CPU 102.0% | RAM    67.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 27.2s | CPU  99.1% | RAM    46.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 28.3s | CPU  96.8% | RAM    31.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 29.3s | CPU 100.7% | RAM    47.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 30.4s | CPU  99.9% | RAM    57.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 31.4s | CPU  85.3% | RAM    40.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 32.5s | CPU 108.0% | RAM    48.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 33.5s | CPU 100.3% | RAM    62.1 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 34.6s | CPU  98.7% | RAM    70.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 35.6s | CPU  92.7% | RAM    73.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 36.7s | CPU  99.5% | RAM    75.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 37.7s | CPU  96.5% | RAM    72.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 38.8s | CPU  96.2% | RAM    76.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 39.8s | CPU 108.1% | RAM    76.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 40.9s | CPU  99.0% | RAM    72.9 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 41.9s | CPU 100.4% | RAM    56.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 43.0s | CPU  99.9% | RAM    59.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 44.0s | CPU  99.9% | RAM    69.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 45.1s | CPU  98.1% | RAM    67.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 46.1s | CPU  98.8% | RAM    75.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 47.2s | CPU 100.0% | RAM    88.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 48.2s | CPU 100.0% | RAM    71.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 49.3s | CPU  97.3% | RAM    78.5 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 50.3s | CPU 108.0% | RAM    79.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 51.4s | CPU 101.6% | RAM    89.3 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 52.4s | CPU 102.4% | RAM    65.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 53.5s | CPU 100.0% | RAM    73.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 54.5s | CPU  98.0% | RAM    81.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 55.6s | CPU  96.3% | RAM    81.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 56.6s | CPU  94.8% | RAM    78.4 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 57.7s | CPU  92.9% | RAM    93.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 58.7s | CPU  94.1% | RAM    88.2 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 59.7s | CPU  92.4% | RAM    81.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1m 0.8s | CPU  90.6% | RAM    79.8 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1m 1.8s | CPU 101.2% | RAM    81.0 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1m 2.9s | CPU  99.9% | RAM    81.7 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 1m 3.9s | CPU  92.0% | RAM    68.9 MB          
+
+
+
+
+                                                         
+
+Solving finished in 1m 4.3s.
+SAT result: SATISFIABLE
+******************
+*----------------*
+*----------------*
+*----------------*
+*----------------*
+*--WWLLLL--------*
+*-WW++++L--------*
+*-W+++++N--------*
+*-I+++++N--------*
+*-I+++++NN-------*
+*-I++++++N-------*
+*-I++++++V-------*
+*-I++++++V-------*
+*-Z++++VVV-------*
+*-ZZZ++Y---------*
+*---ZYYYY--------*
+*----------------*
+******************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:54:39.779220

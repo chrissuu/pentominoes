@@ -1,6 +1,7 @@
 import functools
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from copy import deepcopy
@@ -19,10 +20,15 @@ def log_diff(fn):
         prev = len(self.cnf.clauses)
         computation = fn(self, *args, **kwargs)
         after = len(self.cnf.clauses)
-        print(f"Constraint {fn.__name__} added {after - prev} clauses.")
+        delta = after - prev
+        print(f"Constraint {fn.__name__:<45} | +{delta:5d} clauses")
         return computation
 
     return wrapper
+
+
+def capture_to_log(fn):
+    pass
 
 
 def solve_in_subprocess(clauses):
@@ -44,24 +50,28 @@ def solve_in_subprocess(clauses):
 class PolyominoSolver:
     def __init__(
         self,
+        k: int,
+        inside_tiles_minimum: int,
         width: int,
         height: int,
-        inside_tiles_minimum: int,
-        k: int | None,
         polyominoes: Sequence[Polyomino],
         break_global_symmetries: bool = True,
         break_polyomino_symmetries: bool = True,
         use_sbva: bool = False,
         model_save_path=None,
+        formula_save_path=None,
+        logs_save_path=None,
     ):
+        self.k = k
+        self.inside_tiles_minimum = inside_tiles_minimum
         self.width = width
         self.height = height
-        self.inside_tiles_minimum = inside_tiles_minimum
-        self.polyominoes = deepcopy(polyominoes)  # Make copy to avoid modifying input
-        self.k = k
+        self.polyominoes = deepcopy(polyominoes)
         self.model_save_path = model_save_path
-
+        self.formula_save_path = formula_save_path
+        self.logs_save_path = logs_save_path
         self.use_sbva = use_sbva
+
         self.break_global_symmetries = break_global_symmetries
         if self.break_global_symmetries:
             # Symmetry breaking: fix one polyomino to a canonical rotation
@@ -89,6 +99,23 @@ class PolyominoSolver:
 
         self.cnf = CNF()
         self.model = None
+        self.cell_to_placements = {}
+        self._progress_thread = None
+        self._last_progress_len = 0
+
+    def reset_encoding_state(self) -> None:
+        """
+        Reset CNF and variable maps so constraints can be rebuilt from scratch.
+        """
+        self.vpool = IDPool()
+        self.p_vars = set()
+        self.use_vars = {}
+
+        self.cnf = CNF()
+        self.model = None
+        self.cell_to_placements = {}
+        self._progress_thread = None
+        self._last_progress_len = 0
 
     def get_p_var(self, x: int, y: int, r: int, m: int, i: int) -> int:
         """
@@ -528,10 +555,14 @@ class PolyominoSolver:
         print(f"\rSolving finished in {self._format_elapsed(solve_time)}.")
         print(f"SAT result: {'SATISFIABLE' if result else 'UNSATISFIABLE'}")
 
-        if result:
-            self.model = model
+        if result and model:
+            self.model = self._dense_model(model)
             if self.model_save_path is not None:
                 self.save_model(self.model_save_path)
+
+            if self.formula_save_path is not None:
+                self.save_formula(self.formula_save_path)
+
             return True
 
         return False
@@ -552,6 +583,7 @@ class PolyominoSolver:
 
         self._running_solve = True
         start = time.time()
+        self._last_progress_len = 0
 
         child = psutil.Process(self._solver_pid)
 
@@ -568,6 +600,7 @@ class PolyominoSolver:
                         f"| CPU {cpu:5.1f}% "
                         f"| RAM {mem:7.1f} MB"
                     )
+                    self._last_progress_len = len(msg)
 
                     sys.stdout.write("\r" + msg + " " * 10)
                     sys.stdout.flush()
@@ -583,9 +616,34 @@ class PolyominoSolver:
 
     def _stop_progress_timer(self):
         self._running_solve = False
-        print("\r", end="", flush=True)
+        if self._progress_thread:
+            self._progress_thread.join()
+            self._progress_thread = None
+
+        if self._last_progress_len:
+            sys.stdout.write("\r" + " " * (self._last_progress_len + 10) + "\r")
+            sys.stdout.flush()
+            self._last_progress_len = 0
+
+    def _dense_model(self, raw_model: Sequence[int]) -> List[int]:
+        """Convert solver output literals into a dense, indexable assignment list."""
+        if not raw_model:
+            raise ValueError("Model is empty.")
+
+        max_var = max(abs(lit) for lit in raw_model)
+        dense_model = [0] * max_var
+        for lit in raw_model:
+            dense_model[abs(lit) - 1] = lit
+
+        return dense_model
 
     def _is_true(self, var: int) -> bool:
+        if self.model is None:
+            raise ValueError("Model has not been computed or loaded.")
+
+        if var <= 0 or var > len(self.model):
+            return False
+
         return self.model[var - 1] > 0
 
     def get_placements(self) -> List[Tuple[int, int, int, int, int]]:
@@ -594,6 +652,141 @@ class PolyominoSolver:
             if self._is_true(self.get_p_var(*p_var)):
                 placements.append(p_var)
         return placements
+
+    # BEGIN PICKLE UTILS
+
+    def save_formula(self, file_path: str = None) -> None:
+        if file_path:
+            self.cnf.to_file(file_path)
+        else:
+            if self.model_save_path:
+                print(
+                    f"No model_save_path given. Using default save path {self.model_save_path}"
+                )
+                self.cnf.to_file(self.model_save_path)
+            else:
+                print(f"No model_save_path available. Save failed!")
+
+    def load_formula(self, file_path: str = None) -> None:
+        if file_path:
+            self.cnf = CNF(from_file=file_path)
+        else:
+            if self.model_save_path:
+                print(
+                    f"No model_save_path given. Using default save path {self.model_save_path}"
+                )
+                self.cnf = CNF(from_file=file_path)
+            else:
+                print(f"No model_save_path available. Load failed!")
+
+    def save_model(self, file_path: str) -> None:
+        """
+        Save the current model (variable assignment) to `file_path`
+        in a standard SAT solver output format:
+
+            c comment
+            s SATISFIABLE
+            v lit1 lit2 ... 0
+            v lit_k ... 0
+
+        where each `lit` is a signed integer corresponding to a variable.
+        """
+        with open(file_path, "w") as f:
+            f.write("c Model generated by PolyominoSolver\n")
+            f.write("s SATISFIABLE\n")
+
+            chunk_size = 20
+            for i in range(0, len(self.model), chunk_size):
+                chunk = self.model[i : i + chunk_size]
+                f.write("v " + " ".join(str(lit) for lit in chunk) + " 0\n")
+
+    def load_model(self, file_path: str) -> List[int]:
+        """
+        Load a SAT solver model from disk in DIMACS-style output format and store
+        it in ``self.model``.
+
+        Returns the dense model list for convenience.
+        """
+        loaded_model = []
+        with open(file_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("c") or line.startswith("s"):
+                    continue
+                if line.startswith("v"):
+                    lits = list(map(int, line.split()[1:]))
+                    loaded_model.extend(l for l in lits if l != 0)
+
+        assert loaded_model, "Loaded model is empty."
+
+        self.model = self._dense_model(loaded_model)
+        return self.model
+
+    # END PICKLE UTILS
+
+    # BEGIN VALIDATION UTILS
+
+    def validate_model(self) -> None:
+        """
+        Validate the final SAT model by checking:
+        1. Exactly k_unique distinct polyominoes are used.
+        2. All used polyomino tiles form a single 4-connected loop component.
+        3. Number of inside cells equals num_inside_cells.
+        Throws AssertionError if a violation is found.
+        """
+        assert self.model is not None, "Model has not been computed."
+
+        used_polys = set()
+        for x, y, r, m, i in self.p_vars:
+            if self._is_true(self.get_p_var(x, y, r, m, i)):
+                used_polys.add(i)
+
+        assert (
+            len(used_polys) == self.k
+        ), f"Expected {self.k} unique polyominoes, but got {len(used_polys)}."
+
+        fence_tiles = set()
+        for x in range(self.width):
+            for y in range(self.height):
+                if self._is_true(self.get_tf_var(x, y)):
+                    fence_tiles.add((x, y))
+
+        assert fence_tiles, "No fence tiles in model."
+
+        def nbrs4(x, y):
+            for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
+                if (nx, ny) in fence_tiles:
+                    yield (nx, ny)
+
+        start = next(iter(fence_tiles))
+        stack = [start]
+        visited = set([start])
+
+        while stack:
+            cx, cy = stack.pop()
+            for n in nbrs4(cx, cy):
+                if n not in visited:
+                    visited.add(n)
+                    stack.append(n)
+
+        if visited != fence_tiles:
+            missing = fence_tiles - visited
+            raise AssertionError(
+                "Fence does not form a single 4-connected loop. "
+                f"Disconnected fence tiles: {list(missing)[:10]} ..."
+            )
+
+        inside_count = 0
+        for x in range(self.width):
+            for y in range(self.height):
+                if self._is_true(self.get_ti_var(x, y)):
+                    inside_count += 1
+
+        assert (
+            inside_count == self.inside_tiles_minimum
+        ), f"Expected {self.inside_tiles_minimum} inside cells, but found {inside_count}."
+
+        print("Model validation successful.")
 
     def get_board(self) -> List[List[str]]:
         """
@@ -635,53 +828,3 @@ class PolyominoSolver:
         for row in reversed(grid):
             print("*" + "".join(row) + "*")
         print("*" + "*" * self.width + "*")
-
-        self.model = old_model
-
-    def save_to(self, file):
-        self.cnf.to_file(file)
-
-    def _load_model_file(self, file_path: str) -> list[int]:
-        """
-        Load a model file saved by save_model().
-        Expected format:
-            c ...
-            s SATISFIABLE
-            v lit1 lit2 ... 0
-            ...
-        Returns a flat list of ints (positive or negative).
-        """
-        lits = []
-        with open(file_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("c") or line.startswith("s"):
-                    continue
-                if line.startswith("v "):
-                    parts = line.split()[1:]
-                    for tok in parts:
-                        if tok == "0":
-                            break
-                        lits.append(int(tok))
-        return lits
-
-    def save_model(self, file_path: str) -> None:
-        """
-        Save the current model (variable assignment) to `file_path`
-        in a standard SAT solver output format:
-
-            c comment
-            s SATISFIABLE
-            v lit1 lit2 ... 0
-            v lit_k ... 0
-
-        where each `lit` is a signed integer corresponding to a variable.
-        """
-        with open(file_path, "w") as f:
-            f.write("c Model generated by PolyominoSolver\n")
-            f.write("s SATISFIABLE\n")
-
-            chunk_size = 20
-            for i in range(0, len(self.model), chunk_size):
-                chunk = self.model[i : i + chunk_size]
-                f.write("v " + " ".join(str(lit) for lit in chunk) + " 0\n")

@@ -1,0 +1,83 @@
+Run 'Puzzle Nine 5:23' started at 2025-11-29T20:51:38.556941
+Parameters:
+  - k: 5
+  - inside_min: 23
+  - width: 12
+  - height: 12
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/5x23x12x12.txt
+  - formula_save_path: formulas/5x23x12x12.cnf
+  - log_dir: logs
+  - log_elapsed_every: 10
+------------------------------------------------------------
+
+=== TEST CASE: Puzzle Nine 5:23 ===
+BEGIN BUILDING MAP
+Built map in 0.12 seconds
+
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +14696 clauses
+Constraint add_total_tiles_constraint                    | +11900 clauses
+Constraint add_inside_tiles_constraint                   | + 5468 clauses
+Constraint add_tile_partition_constraints                | +  576 clauses
+Constraint add_link_fence_to_placements_constraint       | +18384 clauses
+Constraint add_outside_adjacency_constraints             | + 1012 clauses
+Constraint add_outside_border_constraints                | +   48 clauses
+Constraint add_fence_touch_inside_constraint             | + 2114 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.17 seconds.
+  Variables: 17587
+  Clauses:   54200
+  Avg clause length: 2.58
+
+BEGIN SOLVING
+
+
+
+
+
+
+
+
+
+
+[elapsed] 0.9s | CPU  95.9% | RAM    64.6 MB          
+
+
+
+
+
+
+
+
+
+
+[elapsed] 2.0s | CPU 101.1% | RAM    60.9 MB          
+
+
+                                                      
+
+Solving finished in 2.1s.
+SAT result: SATISFIABLE
+**************
+*------------*
+*------------*
+*------------*
+*-LLLLVVV----*
+*-L+++++V----*
+*-I+++++V----*
+*-I+++++N----*
+*-I+++++N----*
+*-I++++NN----*
+*-IYYYYN-----*
+*----Y-------*
+*------------*
+**************
+========================================
+
+
+[run logger] Completed at 2025-11-29T20:51:41.142677

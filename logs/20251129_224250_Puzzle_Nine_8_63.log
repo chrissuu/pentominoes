@@ -1,0 +1,34 @@
+Run 'Puzzle Nine 8:63' started at 2025-11-29T22:42:50.734204
+Parameters:
+  - k: 8
+  - inside_min: 63
+  - width: 18
+  - height: 18
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/8x63x18x18.txt
+  - formula_save_path: formulas/8x63x18x18.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 8:63 ===
+BEGIN BUILDING MAP
+Built map in 0.16 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +44540 clauses
+Constraint add_total_tiles_constraint                    | +45440 clauses
+Constraint add_inside_tiles_constraint                   | +32688 clauses
+Constraint add_tile_partition_constraints                | + 1296 clauses
+Constraint add_link_fence_to_placements_constraint       | +55884 clauses
+Constraint add_outside_adjacency_constraints             | + 2380 clauses
+Constraint add_outside_border_constraints                | +   72 clauses
+Constraint add_fence_touch_inside_constraint             | + 4898 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.27 seconds.
+  Variables: 64871
+  Clauses:   187200
+  Avg clause length: 2.58
+BEGIN SOLVING
