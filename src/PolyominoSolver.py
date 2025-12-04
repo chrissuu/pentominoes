@@ -493,12 +493,6 @@ class PolyominoSolver:
 
         build_time = time.time() - t1
 
-        num_clauses = len(self.cnf.clauses)
-        num_vars = self.vpool.top
-        avg_clause_len = (
-            sum(len(c) for c in self.cnf.clauses) / num_clauses if num_clauses else 0
-        )
-
         if self.use_sbva:
             print("SIMPLIFYING CNF WITH SBVA...")
             t2 = time.time()
@@ -506,6 +500,12 @@ class PolyominoSolver:
             sbva_time = time.time() - t2
             print(f"SBVA simplification completed in {sbva_time:.2f} seconds.")
             print()
+
+        num_clauses = len(self.cnf.clauses)
+        num_vars = self.vpool.top
+        avg_clause_len = (
+            sum(len(c) for c in self.cnf.clauses) / num_clauses if num_clauses else 0
+        )
 
         print(f"CNF built in {build_time:.2f} seconds.")
         print(f"  Variables: {num_vars}")
