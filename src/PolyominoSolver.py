@@ -59,6 +59,7 @@ class PolyominoSolver:
         polyominoes: Sequence[Polyomino],
         break_global_symmetries: bool = True,
         break_polyomino_symmetries: bool = True,
+        filter_tile_placements: bool = True,
         use_sbva: bool = False,
         model_save_path=None,
         formula_save_path=None,
@@ -100,6 +101,8 @@ class PolyominoSolver:
             for poly in self.polyominoes:
                 poly.rotation_index = 4
                 poly.reflection_index = 2
+
+        self.filter_tile_placements = filter_tile_placements
 
         self.vpool = IDPool()
         self.p_vars = set()
@@ -190,17 +193,20 @@ class PolyominoSolver:
         ):
             return False
 
-        # Now check if placing tile here allows us to achieve the desired inside_tiles_minimum
-        upper_bound_inside_tiles = min(
-            calc_inside_tiles_upper_bound(
-                self.height - 2,
-                self.width - 2,
-                self.total_tiles,
-                (fixed_tile[0] - 1, fixed_tile[1] - 1),
+        if self.filter_tile_placements:
+            # Now check if placing tile here allows us to achieve the desired inside_tiles_minimum
+            upper_bound_inside_tiles = min(
+                calc_inside_tiles_upper_bound(
+                    self.height - 2,
+                    self.width - 2,
+                    self.total_tiles,
+                    (fixed_tile[0] - 1, fixed_tile[1] - 1),
+                )
+                for fixed_tile in tiles
             )
-            for fixed_tile in tiles
-        )
-        return upper_bound_inside_tiles >= self.inside_tiles_minimum
+            return upper_bound_inside_tiles >= self.inside_tiles_minimum
+        else:
+            return True
 
     def neighbors4(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
