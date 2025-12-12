@@ -1,0 +1,36 @@
+Run 'Puzzle Nine 10:92' started at 2025-12-01T09:07:17.136258
+Parameters:
+  - k: 10
+  - inside_min: 92
+  - width: 22
+  - height: 22
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/10x92x22x22.txt
+  - formula_save_path: formulas/10x92x22x22.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 10:92 ===
+BEGIN BUILDING MAP
+Built map in 0.43 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +73356 clauses
+Constraint add_total_tiles_constraint                    | +86800 clauses
+Constraint add_inside_tiles_constraint                   | +71828 clauses
+Constraint add_tile_partition_constraints                | + 1936 clauses
+Constraint add_link_fence_to_placements_constraint       | +92124 clauses
+Constraint add_outside_adjacency_constraints             | + 3612 clauses
+Constraint add_outside_border_constraints                | +   88 clauses
+Constraint add_fence_touch_inside_constraint             | + 7394 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.96 seconds.
+  Variables: 121308
+  Clauses:   337140
+  Avg clause length: 2.57
+BEGIN SOLVING
+
+[run logger] Completed at 2025-12-01T09:14:34.460743

@@ -1,0 +1,38 @@
+Run 'Puzzle Nine 11:105' started at 2025-12-01T02:50:57.105261
+Parameters:
+  - k: 11
+  - inside_min: 105
+  - width: 25
+  - height: 25
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/11x105x25x25.txt
+  - formula_save_path: formulas/11x105x25x25.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 11:105 ===
+BEGIN BUILDING MAP
+Built map in 0.33 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +99661 clauses
+Constraint add_total_tiles_constraint                    | +125400 clauses
+Constraint add_inside_tiles_constraint                   | +108785 clauses
+Constraint add_tile_partition_constraints                | + 2500 clauses
+Constraint add_link_fence_to_placements_constraint       | +125205 clauses
+Constraint add_outside_adjacency_constraints             | + 4704 clauses
+Constraint add_outside_border_constraints                | +  100 clauses
+Constraint add_fence_touch_inside_constraint             | + 9602 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.79 seconds.
+  Variables: 173818
+  Clauses:   475959
+  Avg clause length: 2.57
+BEGIN SOLVING
+Timed out after 3600 seconds on Puzzle Nine 11:105.
+========================================
+
+[run logger] Completed at 2025-12-01T04:58:32.756257
