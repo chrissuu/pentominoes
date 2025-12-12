@@ -3,7 +3,7 @@ import re
 import signal
 import sys
 from datetime import datetime
-from math import sqrt, ceil
+from math import sqrt, floor
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 
@@ -302,4 +302,4 @@ def validate(
 
 def w(k, l, q):
     """ Lower bound width formula """
-    return ceil(1 + k*l/4 + sqrt((k*l)**2 / 16 - k*l/2 - q + 1))
+    return floor(1 + k*l/4 + sqrt((k*l)**2 / 16 - k*l/2 - q + 1))
