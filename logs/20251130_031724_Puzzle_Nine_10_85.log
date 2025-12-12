@@ -1,0 +1,64 @@
+Run 'Puzzle Nine 10:85' started at 2025-11-30T03:17:24.147804
+Parameters:
+  - k: 10
+  - inside_min: 85
+  - width: 23
+  - height: 23
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/10x85x23x23.txt
+  - formula_save_path: formulas/10x85x23x23.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 10:85 ===
+BEGIN BUILDING MAP
+Built map in 0.44 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +81692 clauses
+Constraint add_total_tiles_constraint                    | +95800 clauses
+Constraint add_inside_tiles_constraint                   | +75121 clauses
+Constraint add_tile_partition_constraints                | + 2116 clauses
+Constraint add_link_fence_to_placements_constraint       | +102589 clauses
+Constraint add_outside_adjacency_constraints             | + 3960 clauses
+Constraint add_outside_border_constraints                | +   92 clauses
+Constraint add_fence_touch_inside_constraint             | + 8098 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.96 seconds.
+  Variables: 132139
+  Clauses:   369470
+  Avg clause length: 2.57
+BEGIN SOLVING
+Solving finished in 9h 11m 47.5s.
+SAT result: SATISFIABLE
+*************************
+*-----------------------*
+*-----------------------*
+*-----------------------*
+*-----------------------*
+*-----------------------*
+*-----UUU---------------*
+*--PPPU+UZZ-------------*
+*--PP+++++Z-------------*
+*-LL++++++ZZ------------*
+*-L++++++++Y------------*
+*-L++++++++Y------------*
+*-L+++++++YY------------*
+*-I++++++++Y------------*
+*-I++++++++N------------*
+*-I+++++++NN------------*
+*-I+++++++N-------------*
+*-I+++++++N-------------*
+*-V+++++++W-------------*
+*-V++++++WW-------------*
+*-VVVTTTWW--------------*
+*-----T-----------------*
+*-----T-----------------*
+*-----------------------*
+*************************
+========================================
+
+[run logger] Completed at 2025-11-30T12:29:13.689218

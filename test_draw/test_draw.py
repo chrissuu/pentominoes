@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.draw import board_to_img
+from draw import board_to_img
 
 
 @pytest.mark.parametrize(

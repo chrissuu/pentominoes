@@ -23,18 +23,18 @@ ORIGINAL LOWER BOUNDS
 """
 PUZZLE_NINE_INSTANCES = [
     # (3, 6),
-    # (4, 12),
-    # (5, 21),
-    # (6, 32),
+    # (4, 13),
+    # (5, 24),
+    # (6, 34),
     # (7, 43),
-    (8, 63),
-    (9, 70),
-    (10, 84),
-    (11, 102),
-    (12, 128),
+    # (8, 63),
+    (9, 79),
+    (10, 95),
+    (11, 112),
+    (12, 129),
 ]
 
-TIMEOUT = 60 * 60
+TIMEOUT = 60 * 60 * 6
 
 def main() -> None:
     results = {}
@@ -51,6 +51,8 @@ def main() -> None:
 
         w_lb = w(n, 5, LB)
         width, height = w_lb + 2, w_lb + 2
+        width = min(20, width)
+        height = min(20, height)
 
         model_path = f"models/{n}x{LB}x{width}x{height}.txt"
         formula_path = f"formulas/{n}x{LB}x{width}x{height}.cnf"

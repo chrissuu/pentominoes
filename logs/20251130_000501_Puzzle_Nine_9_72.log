@@ -1,0 +1,61 @@
+Run 'Puzzle Nine 9:72' started at 2025-11-30T00:05:01.761357
+Parameters:
+  - k: 9
+  - inside_min: 72
+  - width: 20
+  - height: 20
+  - polyominoes: F, I, L, N, P, T, U, V, W, X, Y, Z
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 3600
+  - print_board: True
+  - model_save_path: models/9x72x20x20.txt
+  - formula_save_path: formulas/9x72x20x20.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 9:72 ===
+BEGIN BUILDING MAP
+Built map in 0.19 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | +58056 clauses
+Constraint add_total_tiles_constraint                    | +63900 clauses
+Constraint add_inside_tiles_constraint                   | +46976 clauses
+Constraint add_tile_partition_constraints                | + 1600 clauses
+Constraint add_link_fence_to_placements_constraint       | +72880 clauses
+Constraint add_outside_adjacency_constraints             | + 2964 clauses
+Constraint add_outside_border_constraints                | +   80 clauses
+Constraint add_fence_touch_inside_constraint             | + 6082 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.36 seconds.
+  Variables: 88852
+  Clauses:   252540
+  Avg clause length: 2.57
+BEGIN SOLVING
+Solving finished in 16m 46.5s.
+SAT result: SATISFIABLE
+**********************
+*--------------------*
+*--------------------*
+*--------------------*
+*--------------------*
+*--------------------*
+*----UUU-------------*
+*--WWU+UVVV----------*
+*-WW++++++V----------*
+*-W+++++++V----------*
+*-I+++++++P----------*
+*-I+++++++PP---------*
+*-I+++++++PP---------*
+*-I+++++++Y----------*
+*-I+++++++YY---------*
+*-N+++++++Y----------*
+*-N+++++++Y----------*
+*-NN+++++ZZ----------*
+*--NL++++Z-----------*
+*---LLLLZZ-----------*
+*--------------------*
+**********************
+========================================
+
+[run logger] Completed at 2025-11-30T00:21:49.055276
