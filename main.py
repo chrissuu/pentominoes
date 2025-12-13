@@ -1,5 +1,6 @@
 from utils import run, validate, w
 from Pentomino import ALL_PENTOMINOES
+from Tetromino import ALL_TETROMINOES
 seconds = int
 
 """
@@ -21,17 +22,24 @@ NEW LOWER BOUNDS
 """
 ORIGINAL LOWER BOUNDS
 """
-PUZZLE_NINE_INSTANCES = [
-    # (3, 6),
-    # (4, 13),
-    # (5, 24),
-    # (6, 34),
-    # (7, 43),
-    # (8, 63),
-    (9, 79),
-    (10, 95),
-    (11, 112),
-    (12, 129),
+# PUZZLE_NINE_INSTANCES = [
+#     # (3, 6),
+#     # (4, 13),
+#     # (5, 24),
+#     # (6, 34),
+#     # (7, 43),
+#     # (8, 63),
+#     (9, 79),
+#     (10, 95),
+#     (11, 112),
+#     (12, 129),
+# ]
+
+TETROMINO_INSTANCES = [
+    (2, 0),
+    (3, 0),
+    (4, 0),
+    (5, 0)
 ]
 
 TIMEOUT = 60 * 60 * 6
@@ -39,7 +47,7 @@ TIMEOUT = 60 * 60 * 6
 def main() -> None:
     results = {}
 
-    for n, LB in PUZZLE_NINE_INSTANCES:
+    for n, LB in TETROMINO_INSTANCES:
         print(f"Validating LB={LB} for n={n}...")
         record = {
             "initial": LB,
@@ -49,13 +57,11 @@ def main() -> None:
             "status": "unknown",
         }
 
-        w_lb = w(n, 5, LB)
+        w_lb = w(n, 4, LB)
         width, height = w_lb + 2, w_lb + 2
-        width = min(20, width)
-        height = min(20, height)
 
-        model_path = f"models/{n}x{LB}x{width}x{height}.txt"
-        formula_path = f"formulas/{n}x{LB}x{width}x{height}.cnf"
+        model_path = f"models/tetrominoes/{n}x{LB}x{width}x{height}.txt"
+        formula_path = f"formulas/tetrominoes/{n}x{LB}x{width}x{height}.cnf"
 
         sat = run(
             name=f"Puzzle Nine {n}:{LB}",
@@ -63,7 +69,7 @@ def main() -> None:
             inside_min=LB,
             width=width,
             height=height,
-            polyominoes=ALL_PENTOMINOES,
+            polyominoes=ALL_TETROMINOES,
             break_global_symmetries=True,
             break_polyomino_symmetries=True,
             timeout=TIMEOUT,
@@ -90,7 +96,7 @@ def main() -> None:
             inside_min=LB,
             width=width,
             height=height,
-            polyominoes=ALL_PENTOMINOES,
+            polyominoes=ALL_TETROMINOES,
             break_global_symmetries=True,
             break_polyomino_symmetries=True,
             model_save_path=model_path,
@@ -99,11 +105,11 @@ def main() -> None:
 
         curr = LB + 1
         while True:
-            w_lb = w(n, 5, curr)
+            w_lb = w(n, 4, curr)
             width, height = w_lb + 2, w_lb + 2
 
-            model_path = f"models/{n}x{curr}x{width}x{height}.txt"
-            formula_path = f"formulas/{n}x{curr}x{width}x{height}.cnf"
+            model_path = f"models/tetrominoes/{n}x{curr}x{width}x{height}.txt"
+            formula_path = f"formulas/tetrominoes/{n}x{curr}x{width}x{height}.cnf"
 
             print(f"Testing n={n}, LB={curr}...")
 
@@ -113,7 +119,7 @@ def main() -> None:
                 inside_min=curr,
                 width=width,
                 height=height,
-                polyominoes=ALL_PENTOMINOES,
+                polyominoes=ALL_TETROMINOES,
                 break_global_symmetries=True,
                 break_polyomino_symmetries=True,
                 timeout=TIMEOUT,
@@ -140,7 +146,7 @@ def main() -> None:
                 inside_min=curr,
                 width=width,
                 height=height,
-                polyominoes=ALL_PENTOMINOES,
+                polyominoes=ALL_TETROMINOES,
                 break_global_symmetries=True,
                 break_polyomino_symmetries=True,
                 model_save_path=model_path,

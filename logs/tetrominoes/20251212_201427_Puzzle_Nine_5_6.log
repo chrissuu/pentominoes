@@ -1,0 +1,53 @@
+Run 'Puzzle Nine 5:6' started at 2025-12-12T20:14:27.146004
+Parameters:
+  - k: 5
+  - inside_min: 6
+  - width: 12
+  - height: 12
+  - polyominoes: I, O, T, L, N
+  - break_global_symmetries: True
+  - break_polyomino_symmetries: True
+  - timeout_seconds: 21600
+  - print_board: True
+  - model_save_path: models/tetrominoes/5x6x12x12.txt
+  - formula_save_path: formulas/tetrominoes/5x6x12x12.cnf
+  - log_dir: logs
+  - log_elapsed_every: disabled
+------------------------------------------------------------
+=== TEST CASE: Puzzle Nine 5:6 ===
+BEGIN BUILDING MAP
+Built map in 0.01 seconds
+BEGIN CONSTRAINT BUILDING
+Constraint add_polyomino_selection_constraint            | + 3466 clauses
+Constraint add_total_tiles_constraint                    | + 9920 clauses
+Constraint add_inside_tiles_constraint                   | + 1524 clauses
+Constraint add_tile_partition_constraints                | +  576 clauses
+Constraint add_link_fence_to_placements_constraint       | + 3620 clauses
+Constraint add_outside_adjacency_constraints             | + 1012 clauses
+Constraint add_outside_border_constraints                | +   48 clauses
+Constraint add_fence_touch_inside_constraint             | + 2114 clauses
+Constraint add_global_symmetry_breaking_constraints      | +    2 clauses
+CNF built in 0.03 seconds.
+  Variables: 9014
+  Clauses:   22282
+  Avg clause length: 2.49
+BEGIN SOLVING
+Solving finished in 1.9s.
+SAT result: SATISFIABLE
+**************
+*------------*
+*------------*
+*------------*
+*------------*
+*------------*
+*-LLLTTT-----*
+*-L+++T------*
+*-N+++I------*
+*-NNOOI------*
+*--NOOI------*
+*-----I------*
+*------------*
+**************
+========================================
+
+[run logger] Completed at 2025-12-12T20:14:29.131333

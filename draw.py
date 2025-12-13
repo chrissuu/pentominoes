@@ -268,8 +268,12 @@ def process_log_file(log_file_path: str, output_image_path: str):
     board_lines = []
     in_board = False
     
+    def is_border_line(s: str) -> bool:
+        stripped = s.strip()
+        return bool(stripped) and all(ch == BORDER_CHAR for ch in stripped)
+
     for line in lines:
-        if line.startswith('**********'):
+        if is_border_line(line):
             if not in_board:
                 in_board = True
                 board_lines.append(line)
@@ -292,8 +296,9 @@ def process_log_file(log_file_path: str, output_image_path: str):
 if __name__ == "__main__":
     import os
 
-    for file_dir in sorted(os.listdir('logs')):
+    for file_dir in sorted(os.listdir('logs/tetrominoes')):
+        print(file_dir)
         metadata = file_dir.split('_')
         k = int(metadata[-2])
         inside_area = int(metadata[-1].split('.')[0])
-        process_log_file(f'logs/{file_dir}', f'boards/{k}x{inside_area}.png')
+        process_log_file(f'logs/tetrominoes/{file_dir}', f'boards/tetrominoes/{k}x{inside_area}.png')
